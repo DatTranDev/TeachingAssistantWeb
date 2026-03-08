@@ -39,15 +39,8 @@ function getFileConfig(name: string) {
   return FILE_CONFIGS[ext] ?? { color: 'text-neutral-500', bg: 'bg-neutral-100 dark:bg-slate-700' };
 }
 
-function SessionDocSection({
-  session,
-  t,
-  locale,
-}: {
-  session: CAttend;
-  t: (k: string, p?: Record<string, string>) => string;
-  locale: string;
-}) {
+function SessionDocSection({ session }: { session: CAttend }) {
+  const { t, locale } = useT();
   const [expanded, setExpanded] = useState(true);
 
   const { data: docs = [], isLoading } = useQuery({
@@ -130,7 +123,7 @@ function SessionDocSection({
 
 export default function StudentDocumentsPage() {
   const { subjectId } = useSubject();
-  const { t, locale } = useT();
+  const { t } = useT();
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: queryKeys.cAttend.bySubject(subjectId),
@@ -164,7 +157,7 @@ export default function StudentDocumentsPage() {
   return (
     <div className="space-y-3">
       {sortedSessions.map((session) => (
-        <SessionDocSection key={session._id} session={session} t={t} locale={locale} />
+        <SessionDocSection key={session._id} session={session} />
       ))}
     </div>
   );
