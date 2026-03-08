@@ -1,11 +1,19 @@
 import { apiClient } from './client';
-import type { Discussion } from '@/types/domain';
+import type { Discussion, Reaction } from '@/types/domain';
 
 export interface CreateDiscussionPayload {
   cAttendId: string;
+  creator: string;
   content: string;
   title?: string;
   images?: string[];
+  replyOf?: string | null;
+}
+
+export interface AddReactionPayload {
+  userId: string;
+  discussionId: string;
+  type: 1 | 2 | 3 | 4 | 5;
 }
 
 export const discussionsApi = {
@@ -18,7 +26,7 @@ export const discussionsApi = {
     const { data } = await apiClient.get<{ discussions: Discussion[] }>(
       `/discussion/findByCAttend/${cAttendId}`
     );
-    return data.discussions;
+    return data.discussions ?? [];
   },
 
   update: async (id: string, payload: Partial<Discussion>): Promise<void> => {
@@ -30,20 +38,21 @@ export const discussionsApi = {
   },
 
   vote: async (id: string, type: 'upvote' | 'downvote'): Promise<void> => {
-    await apiClient.patch(`/discussion/vote/${id}`, { type });
+    await apiClient.post(`/discussion/${id}/vote`, { type });
   },
 
-  resolve: async (id: string): Promise<void> => {
-    await apiClient.patch(`/discussion/resolve/${id}`, {});
+  addReaction: async (payload: AddReactionPayload): Promise<Reaction> => {
+    const { data } = await apiClient.post<{ reaction: Reaction }>(
+      '/discussion/reaction/add',
+      payload
+    );
+    return data.reaction;
   },
 
-  reply: async (payload: {
-    cAttendId: string;
-    replyOf: string;
-    content: string;
-    images?: string[];
-  }): Promise<Discussion> => {
-    const { data } = await apiClient.post<{ discussion: Discussion }>('/discussion/reply', payload);
-    return data.discussion;
+  updateReaction: async (reactionId: string, type: 1 | 2 | 3 | 4 | 5): Promise<Reaction> => {
+    const { data } = await apiClient.patch<Reaction>(`/discussion/reaction/update/${reactionId}`, {
+      type,
+    });
+    return data;
   },
 };

@@ -95,11 +95,11 @@ export const groupMessagesApi = {
     return data.groupMessage;
   },
 
-  getByGroup: async (groupId: string, page = 1, limit = 50): Promise<GroupMessage[]> => {
-    const { data } = await apiClient.get<{ groupMessages: GroupMessage[] }>(
-      `/group/${groupId}/message/?limit=${limit}&page=${page}`
+  getByGroup: async (groupId: string, limit = 50): Promise<GroupMessage[]> => {
+    const { data } = await apiClient.get<{ messages: GroupMessage[]; hasMore: boolean }>(
+      `/group/${groupId}/message/?limit=${limit}`
     );
-    return [...data.groupMessages].reverse(); // reverse to oldest-first for display
+    return [...data.messages].reverse(); // reverse to oldest-first for display
   },
 
   update: async (id: string, content: string): Promise<void> => {
@@ -108,5 +108,9 @@ export const groupMessagesApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/group/message/delete/${id}`);
+  },
+
+  revoke: async (id: string): Promise<void> => {
+    await apiClient.patch(`/group/message/update/${id}`, { isRevoked: true });
   },
 };

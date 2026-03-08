@@ -9,6 +9,7 @@ import { cAttendApi } from '@/lib/api/cAttend';
 import { attendRecordsApi } from '@/lib/api/attendRecords';
 import { getCAttendStatus } from '@/components/features/sessions/SessionStatusBadge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useT } from '@/hooks/use-t';
 import { cn } from '@/lib/utils';
 import type { AttendRecord, CAttend, AttendanceStatus } from '@/types/domain';
 
@@ -16,7 +17,7 @@ function AttendanceBar({ rate }: { rate: number }) {
   const color = rate >= 80 ? 'bg-green-500' : rate >= 60 ? 'bg-yellow-500' : 'bg-red-500';
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-neutral-100 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all', color)}
           style={{ width: `${rate}%` }}
@@ -43,6 +44,7 @@ function colorDot(rate: number) {
 export default function StudentStatisticsPage() {
   const { subjectId } = useSubject();
   const { user } = useAuth();
+  const { t, locale } = useT();
 
   const { data: cAttends = [], isLoading: loadingSessions } = useQuery({
     queryKey: queryKeys.cAttend.bySubject(subjectId),
@@ -69,15 +71,9 @@ export default function StudentStatisticsPage() {
     [attendRecords]
   );
 
-  const absent = useMemo(
-    () => attendRecords.filter((r: AttendRecord) => r.status === 'KP').length,
-    [attendRecords]
-  );
-
   const attendanceRate =
     pastSessions.length > 0 ? Math.round((attended / pastSessions.length) * 100) : 0;
 
-  // Per-status breakdown
   const statusCount: Record<AttendanceStatus, number> = useMemo(() => {
     const counts = { CM: 0, KP: 0, CP: 0 } as Record<AttendanceStatus, number>;
     attendRecords.forEach((r: AttendRecord) => {
@@ -87,10 +83,26 @@ export default function StudentStatisticsPage() {
   }, [attendRecords]);
 
   const STATUS_LABELS: Record<AttendanceStatus, { label: string; color: string }> = {
-    CM: { label: 'Có mặt', color: 'text-green-600 bg-green-50' },
-    KP: { label: 'Vắng', color: 'text-red-600 bg-red-50' },
-    CP: { label: 'Có phép', color: 'text-yellow-600 bg-yellow-50' },
+    CM: {
+      label: t('studentStatistics.statusPresent'),
+      color: 'text-green-600 bg-green-50 dark:bg-green-950/30',
+    },
+    KP: {
+      label: t('studentStatistics.statusAbsent'),
+      color: 'text-red-600 bg-red-50 dark:bg-red-950/30',
+    },
+    CP: {
+      label: t('studentStatistics.statusExcused'),
+      color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/30',
+    },
   };
+
+  const rating =
+    attendanceRate >= 80
+      ? t('studentStatistics.ratingGood')
+      : attendanceRate >= 60
+        ? t('studentStatistics.ratingAverage')
+        : t('studentStatistics.ratingAttention');
 
   return (
     <div className="space-y-6">
@@ -102,8 +114,8 @@ export default function StudentStatisticsPage() {
       ) : (
         <>
           {/* Overall card */}
-          <div className="rounded-xl border bg-white p-5">
-            <h3 className="text-sm font-semibold mb-4">Tổng quan điểm danh</h3>
+          <div className="rounded-xl border bg-white dark:bg-slate-900 p-5">
+            <h3 className="text-sm font-semibold mb-4">{t('studentStatistics.overallTitle')}</h3>
             <div className="flex items-end gap-4 mb-3">
               <div>
                 <div
@@ -119,7 +131,10 @@ export default function StudentStatisticsPage() {
                   {attendanceRate}%
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  {attended} / {pastSessions.length} buổi có mặt
+                  {t('studentStatistics.sessionsAttended', {
+                    attended: String(attended),
+                    total: String(pastSessions.length),
+                  })}
                 </div>
               </div>
               <div className="flex-1" />
@@ -134,15 +149,15 @@ export default function StudentStatisticsPage() {
                       : 'text-red-600'
                 )}
               >
-                {attendanceRate >= 80 ? 'Tốt' : attendanceRate >= 60 ? 'Trung bình' : 'Cần chú ý'}
+                {rating}
               </span>
             </div>
             <AttendanceBar rate={attendanceRate} />
           </div>
 
           {/* Status breakdown */}
-          <div className="rounded-xl border bg-white p-4">
-            <h3 className="text-sm font-semibold mb-3">Chi tiết điểm danh</h3>
+          <div className="rounded-xl border bg-white dark:bg-slate-900 p-4">
+            <h3 className="text-sm font-semibold mb-3">{t('studentStatistics.breakdownTitle')}</h3>
             <div className="grid grid-cols-3 gap-3">
               {(['CM', 'CP', 'KP'] as AttendanceStatus[]).map((status) => (
                 <div
@@ -158,9 +173,9 @@ export default function StudentStatisticsPage() {
 
           {/* Session list */}
           {pastSessions.length > 0 && (
-            <div className="rounded-xl border bg-white overflow-hidden">
-              <div className="px-4 py-3 bg-neutral-50 border-b">
-                <h3 className="text-sm font-semibold">Lịch sử điểm danh</h3>
+            <div className="rounded-xl border bg-white dark:bg-slate-900 overflow-hidden">
+              <div className="px-4 py-3 bg-neutral-50 dark:bg-slate-800 border-b">
+                <h3 className="text-sm font-semibold">{t('studentStatistics.historyTitle')}</h3>
               </div>
               <table className="w-full text-sm">
                 <tbody className="divide-y">
@@ -175,10 +190,10 @@ export default function StudentStatisticsPage() {
                     const status = record?.status as AttendanceStatus | undefined;
                     const cfg = status ? STATUS_LABELS[status] : null;
                     return (
-                      <tr key={s._id} className="hover:bg-neutral-50">
+                      <tr key={s._id} className="hover:bg-neutral-50 dark:hover:bg-slate-800">
                         <td className="px-4 py-2.5 text-muted-foreground w-10">{i + 1}</td>
                         <td className="px-4 py-2.5">
-                          {new Date(s.date).toLocaleDateString('vi-VN')}
+                          {new Date(s.date).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')}
                         </td>
                         <td className="px-4 py-2.5 text-right">
                           {cfg ? (
@@ -191,8 +206,8 @@ export default function StudentStatisticsPage() {
                               {cfg.label}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-500">
-                              Chưa ghi
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-neutral-100 dark:bg-slate-700 text-neutral-500">
+                              {t('studentStatistics.statusNotRecorded')}
                             </span>
                           )}
                         </td>

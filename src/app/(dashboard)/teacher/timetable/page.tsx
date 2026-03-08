@@ -1,14 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/api/queryKeys';
 import { subjectsApi } from '@/lib/api/subjects';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { TimetableCard } from '@/components/features/timetable/TimetableCard';
-import { TimetableCardSkeleton } from '@/components/features/timetable/TimetableCardSkeleton';
+import { WeekCalendar } from '@/components/features/timetable/WeekCalendar';
 import { useT } from '@/hooks/use-t';
 
 export default function TeacherTimetablePage() {
@@ -22,7 +21,7 @@ export default function TeacherTimetablePage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Page header */}
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -41,40 +40,8 @@ export default function TeacherTimetablePage() {
         </Button>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <TimetableCardSkeleton key={i} />
-          ))}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && subjects.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-white dark:bg-slate-900 py-16 gap-4 text-center">
-          <Calendar className="h-12 w-12 text-muted-foreground/50" />
-          <div>
-            <p className="text-lg font-medium">{t('teacher.timetable.empty')}</p>
-            <p className="text-sm text-muted-foreground mt-1">{t('teacher.timetable.emptyDesc')}</p>
-          </div>
-          <Button asChild>
-            <Link href="/teacher/classes/new">
-              <Plus className="mr-2 h-4 w-4" />
-              {t('teacher.timetable.create')}
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      {/* Subject grid */}
-      {!isLoading && subjects.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {subjects.map((subject) => (
-            <TimetableCard key={subject._id} subject={subject} role="teacher" />
-          ))}
-        </div>
-      )}
+      {/* Weekly calendar */}
+      <WeekCalendar role="teacher" />
     </div>
   );
 }

@@ -23,7 +23,7 @@ export function StudentSubjectCard({ subject, onLeave }: StudentSubjectCardProps
     typeof subject.hostId !== 'string' ? (subject.hostId as { name: string }).name : '';
 
   return (
-    <div className="flex flex-col rounded-xl border bg-white p-5 gap-3 hover:shadow-md transition-shadow">
+    <div className="flex flex-col rounded-xl border bg-white dark:bg-slate-900 dark:border-slate-700 p-5 gap-3 hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-base font-semibold leading-snug line-clamp-2 flex-1">{subject.name}</h3>
@@ -57,7 +57,7 @@ export function StudentSubjectCard({ subject, onLeave }: StudentSubjectCardProps
         {teacherName && <p>Giảng viên: {teacherName}</p>}
       </div>
 
-      <div className="border-t" />
+      <div className="border-t dark:border-slate-700" />
 
       {/* Detail link */}
       <div className="flex justify-end">

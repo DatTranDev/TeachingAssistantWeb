@@ -3,17 +3,27 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { groupsApi, groupMessagesApi } from '@/lib/api/groups';
 import { queryKeys } from '@/lib/api/queryKeys';
 import { useSubject } from '@/contexts/SubjectContext';
 import { useAuth } from '@/hooks/use-auth';
+import { useSubjectRoom } from '@/hooks/use-room';
+import { useSocketEvent } from '@/hooks/use-socket-event';
+import { useSocket } from '@/providers/socket-provider';
+import { useT } from '@/hooks/use-t';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { Group, GroupMessage, User } from '@/types/domain';
 
@@ -27,20 +37,27 @@ function getSenderId(senderId: GroupMessage['senderId']): string {
   return senderId as string;
 }
 
-function formatTime(dateStr?: string): string {
+function formatTime(dateStr?: string, locale = 'vi'): string {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  return new Date(dateStr).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
-function formatDate(dateStr?: string): string {
+function formatDate(dateStr?: string, today?: string, yesterday?: string, locale = 'vi'): string {
   if (!dateStr) return '';
   const d = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return 'Hôm nay';
-  if (d.toDateString() === yesterday.toDateString()) return 'Hôm qua';
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const now = new Date();
+  const prev = new Date(now);
+  prev.setDate(now.getDate() - 1);
+  if (d.toDateString() === now.toDateString()) return today ?? 'Today';
+  if (d.toDateString() === prev.toDateString()) return yesterday ?? 'Yesterday';
+  return d.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 function isSameDate(a?: string, b?: string): boolean {
@@ -72,10 +89,15 @@ export default function StudentGroupChatPage() {
   const { subjectId } = useSubject();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { socket } = useSocket();
+  const { t, locale } = useT();
 
   const [content, setContent] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Join subject socket room for revoke events
+  useSubjectRoom(user?._id, subjectId);
 
   // Fetch all groups to find current group info
   const { data: groups = [] } = useQuery({
@@ -88,7 +110,7 @@ export default function StudentGroupChatPage() {
   // Fetch messages with polling (no socket support)
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['groupMessages', groupId],
-    queryFn: () => groupMessagesApi.getByGroup(groupId, 1, 50),
+    queryFn: () => groupMessagesApi.getByGroup(groupId, 50),
     refetchInterval: 5_000,
     staleTime: 0,
     enabled: !!groupId,
@@ -128,9 +150,33 @@ export default function StudentGroupChatPage() {
       queryClient.invalidateQueries({ queryKey: ['groupMessages', groupId] });
     },
     onError: () => {
-      toast.error('Không thể gửi tin nhắn. Vui lòng thử lại.');
+      toast.error(t('groupChat.sendError'));
     },
   });
+
+  const revokeMutation = useMutation({
+    mutationFn: (messageId: string) => groupMessagesApi.revoke(messageId),
+    onSuccess: (_, messageId) => {
+      queryClient.setQueryData(['groupMessages', groupId], (old: GroupMessage[] | undefined) =>
+        (old ?? []).map((m) => (m._id === messageId ? { ...m, isRevoked: true } : m))
+      );
+      socket?.emit('sendRevokedMessage', { subjectID: subjectId, messageID: messageId });
+      toast.success(t('groupChat.revokeSuccess'));
+    },
+    onError: () => {
+      toast.error(t('groupChat.revokeError'));
+    },
+  });
+
+  const handleReceiveRevokedMessage = useCallback(
+    (messageId: string) => {
+      queryClient.setQueryData(['groupMessages', groupId], (old: GroupMessage[] | undefined) =>
+        (old ?? []).map((m) => (m._id === messageId ? { ...m, isRevoked: true } : m))
+      );
+    },
+    [queryClient, groupId]
+  );
+  useSocketEvent('receiveRevokedMessage', handleReceiveRevokedMessage);
 
   const handleSend = useCallback(() => {
     if (!content.trim() || !user) return;
@@ -157,8 +203,12 @@ export default function StudentGroupChatPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="font-semibold text-base">{group?.name ?? 'Nhóm chat'}</h1>
-          <p className="text-xs text-muted-foreground">{group?.members?.length ?? 0} thành viên</p>
+          <h1 className="font-semibold text-base">
+            {group?.name ?? t('groupChat.groupFallbackName')}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {t('groups.membersCount', { count: String(group?.members?.length ?? 0) })}
+          </p>
         </div>
       </div>
 
@@ -178,9 +228,7 @@ export default function StudentGroupChatPage() {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground text-sm">
-              Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!
-            </p>
+            <p className="text-muted-foreground text-sm">{t('groupChat.noMessages')}</p>
           </div>
         ) : (
           messages.map((msg, idx) => {
@@ -197,13 +245,21 @@ export default function StudentGroupChatPage() {
                   <div className="flex items-center gap-2 my-3">
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDate(msg.createdAt)}
+                      {formatDate(
+                        msg.createdAt,
+                        t('groupChat.today'),
+                        t('groupChat.yesterday'),
+                        locale
+                      )}
                     </span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
                 )}
                 <div
-                  className={cn('flex gap-2 items-end', isOwn ? 'flex-row-reverse' : 'flex-row')}
+                  className={cn(
+                    'flex gap-2 items-end group',
+                    isOwn ? 'flex-row-reverse' : 'flex-row'
+                  )}
                 >
                   {/* Avatar placeholder to maintain alignment */}
                   {!isOwn && (
@@ -219,18 +275,47 @@ export default function StudentGroupChatPage() {
                         {sender.name}
                       </span>
                     )}
-                    <div
-                      className={cn(
-                        'px-4 py-2 rounded-2xl text-sm break-words',
-                        isOwn
-                          ? 'bg-primary text-primary-foreground rounded-br-sm'
-                          : 'bg-neutral-100 text-foreground rounded-bl-sm'
+                    <div className="flex items-end gap-1">
+                      {isOwn && !msg.isRevoked && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground mb-1 shrink-0"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            side="left"
+                            align="end"
+                            className="bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-700 shadow-lg"
+                          >
+                            <DropdownMenuItem
+                              className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 cursor-pointer"
+                              onClick={() => revokeMutation.mutate(msg._id)}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              {t('groupChat.revokeAction')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
-                    >
-                      {msg.content}
+                      <div
+                        className={cn(
+                          'px-4 py-2 rounded-2xl text-sm wrap-break-word',
+                          msg.isRevoked
+                            ? 'bg-neutral-100 dark:bg-slate-800 text-muted-foreground italic'
+                            : isOwn
+                              ? 'bg-primary text-primary-foreground rounded-br-sm'
+                              : 'bg-neutral-100 dark:bg-slate-800 text-foreground rounded-bl-sm'
+                        )}
+                      >
+                        {msg.isRevoked ? t('groupChat.revokedMessage') : msg.content}
+                      </div>
                     </div>
                     <span className="text-xs text-muted-foreground mt-0.5 px-1">
-                      {formatTime(msg.createdAt)}
+                      {formatTime(msg.createdAt, locale)}
                     </span>
                   </div>
                 </div>
@@ -248,9 +333,9 @@ export default function StudentGroupChatPage() {
           value={content}
           onChange={(e) => setContent(e.target.value.slice(0, 1000))}
           onKeyDown={handleKeyDown}
-          placeholder="Nhập tin nhắn..."
+          placeholder={t('groupChat.messagePlaceholder')}
           rows={1}
-          className="min-h-[40px] max-h-[120px] resize-none flex-1"
+          className="min-h-10 max-h-30 resize-none flex-1"
         />
         <Button
           size="icon"

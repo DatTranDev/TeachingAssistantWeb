@@ -42,17 +42,17 @@ function AttendStatusBadge({ status }: { status: AttendanceStatus | null }) {
   const ATTEND_STATUS_CONFIG: Record<AttendanceStatus, { label: string; className: string }> = {
     CM: {
       label: t('studentSessions.attendStatus.present'),
-      className: 'bg-green-100 text-green-700',
+      className: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',
     },
-    KP: { label: t('studentSessions.attendStatus.absent'), className: 'bg-red-100 text-red-700' },
+    KP: { label: t('studentSessions.attendStatus.absent'), className: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' },
     CP: {
       label: t('studentSessions.attendStatus.excused'),
-      className: 'bg-yellow-100 text-yellow-700',
+      className: 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400',
     },
   };
   if (!status) {
     return (
-      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-500">
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-neutral-100 dark:bg-slate-700 text-neutral-500 dark:text-neutral-400">
         {t('studentSessions.attendStatus.notMarked')}
       </span>
     );
@@ -304,7 +304,7 @@ function ReviewModal({
 export default function StudentSessionsPage() {
   const { subjectId, classSessions } = useSubject();
   const { user } = useAuth();
-  const { t } = useT();
+  const { t, locale } = useT();
   const [reviewTarget, setReviewTarget] = useState<CAttend | null>(null);
   // Track sessions reviewed in current session
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
@@ -348,7 +348,7 @@ export default function StudentSessionsPage() {
     const wd = d.getDay();
     const idx = wd === 0 ? 7 : wd;
     const day = idx >= 1 && idx <= 7 ? t(`days.short.d${idx}` as TKey) : '';
-    return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+    return `${day}, ${d.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')}`;
   };
 
   // Sort by date: upcoming first, then past desc
@@ -403,7 +403,7 @@ export default function StudentSessionsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y dark:divide-slate-700">
               {sorted.map((cAttend, idx) => {
                 const status = getCAttendStatus(cAttend);
                 const cs = getClassSession(cAttend);
@@ -411,7 +411,7 @@ export default function StudentSessionsPage() {
                 const isPast = status === 'ended';
                 const hasReviewed = reviewedIds.has(cAttend._id);
                 return (
-                  <tr key={cAttend._id} className="hover:bg-neutral-50 transition-colors">
+                  <tr key={cAttend._id} className="hover:bg-neutral-50 dark:hover:bg-slate-800 transition-colors">
                     <td className="px-4 py-3 text-muted-foreground">{idx + 1}</td>
                     <td className="px-4 py-3">
                       <div>{formatDate(cAttend.date)}</div>
@@ -433,7 +433,7 @@ export default function StudentSessionsPage() {
                     <td className="px-4 py-3">
                       {isPast &&
                         (hasReviewed ? (
-                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400">
                             <Star className="h-3 w-3 fill-green-500 text-green-500" />
                             {t('studentSessions.reviewedBadge')}
                           </span>

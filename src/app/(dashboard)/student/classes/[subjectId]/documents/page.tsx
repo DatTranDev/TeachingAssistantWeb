@@ -10,14 +10,18 @@ import { useSubject } from '@/contexts/SubjectContext';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useT } from '@/hooks/use-t';
 import type { CAttend, Document as Doc } from '@/types/domain';
 
-const DAY_NAMES = ['', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-function formatDate(dateStr: string) {
+const DAY_NAMES_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_NAMES_VI = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+function formatDate(dateStr: string, locale: string) {
   const d = new Date(dateStr);
   const wd = d.getDay();
-  const day = DAY_NAMES[wd === 0 ? 7 : wd] ?? '';
-  return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+  const dayNames = locale === 'vi' ? DAY_NAMES_VI : DAY_NAMES_EN;
+  const day = dayNames[wd] ?? '';
+  return `${day}, ${d.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')}`;
 }
 
 const FILE_CONFIGS: Record<string, { color: string; bg: string }> = {
@@ -35,7 +39,15 @@ function getFileConfig(name: string) {
   return FILE_CONFIGS[ext] ?? { color: 'text-neutral-500', bg: 'bg-neutral-100 dark:bg-slate-700' };
 }
 
-function SessionDocSection({ session }: { session: CAttend }) {
+function SessionDocSection({
+  session,
+  t,
+  locale,
+}: {
+  session: CAttend;
+  t: (k: string, p?: Record<string, string>) => string;
+  locale: string;
+}) {
   const [expanded, setExpanded] = useState(true);
 
   const { data: docs = [], isLoading } = useQuery({
@@ -45,18 +57,20 @@ function SessionDocSection({ session }: { session: CAttend }) {
   });
 
   return (
-    <div className="rounded-xl border bg-white overflow-hidden">
+    <div className="rounded-xl border bg-white dark:bg-slate-900 overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center gap-2 px-4 py-3 bg-neutral-50 hover:bg-neutral-100 transition-colors text-left"
+        className="w-full flex items-center gap-2 px-4 py-3 bg-neutral-50 dark:bg-slate-800 hover:bg-neutral-100 dark:hover:bg-slate-700 transition-colors text-left"
       >
         {expanded ? (
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         ) : (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
-        <span className="font-medium text-sm">Buổi #{session.sessionNumber}</span>
-        <span className="text-sm text-muted-foreground">— {formatDate(session.date)}</span>
+        <span className="font-medium text-sm">
+          {t('documents.sessionLabel', { n: String(session.sessionNumber) })}
+        </span>
+        <span className="text-sm text-muted-foreground">— {formatDate(session.date, locale)}</span>
         {docs.length > 0 && (
           <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs">
             {docs.length}
@@ -72,7 +86,7 @@ function SessionDocSection({ session }: { session: CAttend }) {
             </div>
           ) : docs.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-              Chưa có tài liệu nào cho buổi này
+              {t('documents.noDocuments')}
             </div>
           ) : (
             <table className="w-full text-sm">
@@ -97,7 +111,7 @@ function SessionDocSection({ session }: { session: CAttend }) {
                           <a href={doc.dowloadUrl} target="_blank" rel="noopener noreferrer">
                             <Button variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs">
                               <Download className="h-3.5 w-3.5" />
-                              Tải về
+                              {t('documents.downloadBtn')}
                             </Button>
                           </a>
                         </div>
@@ -116,6 +130,7 @@ function SessionDocSection({ session }: { session: CAttend }) {
 
 export default function StudentDocumentsPage() {
   const { subjectId } = useSubject();
+  const { t, locale } = useT();
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: queryKeys.cAttend.bySubject(subjectId),
@@ -139,9 +154,9 @@ export default function StudentDocumentsPage() {
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 py-12 gap-3 text-center">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800 py-12 gap-3 text-center">
         <File className="h-8 w-8 text-muted-foreground/40" />
-        <p className="font-medium text-muted-foreground">Chưa có buổi học nào</p>
+        <p className="font-medium text-muted-foreground">{t('documents.noSessions')}</p>
       </div>
     );
   }
@@ -149,7 +164,7 @@ export default function StudentDocumentsPage() {
   return (
     <div className="space-y-3">
       {sortedSessions.map((session) => (
-        <SessionDocSection key={session._id} session={session} />
+        <SessionDocSection key={session._id} session={session} t={t} locale={locale} />
       ))}
     </div>
   );

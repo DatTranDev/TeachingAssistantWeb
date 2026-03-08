@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useT } from '@/hooks/use-t';
 import type { Group, User } from '@/types/domain';
 
 function getUser(u: string | User): User | null {
@@ -29,6 +30,7 @@ function UserAvatar({ user, highlight }: { user: User; highlight?: boolean }) {
 export default function StudentGroupsPage() {
   const { subjectId } = useSubject();
   const { user } = useAuth();
+  const { t } = useT();
   const userId = user?._id ?? '';
 
   const { data: myGroup, isLoading: myGroupLoading } = useQuery({
@@ -56,15 +58,17 @@ export default function StudentGroupsPage() {
     <div className="space-y-6">
       {/* My group */}
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Nhóm của bạn</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+          {t('studentGroups.myGroupTitle')}
+        </h3>
         {myGroup ? (
-          <div className="rounded-xl border bg-white p-4 space-y-3">
+          <div className="rounded-xl border bg-white dark:bg-slate-900 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-semibold">{myGroup.name}</span>
               <Link href={`/student/classes/${subjectId}/groups/${myGroup._id}/chat`}>
                 <Button size="sm" className="gap-1.5">
                   <MessageCircle className="h-4 w-4" />
-                  Vào nhóm chat
+                  {t('studentGroups.enterChat')}
                 </Button>
               </Link>
             </div>
@@ -74,17 +78,21 @@ export default function StudentGroupsPage() {
                   <UserAvatar user={m} highlight={m._id === userId} />
                   <span className="flex-1">{m.name}</span>
                   {m._id === userId && (
-                    <span className="text-xs text-primary font-medium">Bạn</span>
+                    <span className="text-xs text-primary font-medium">
+                      {t('studentGroups.youLabel')}
+                    </span>
                   )}
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">{myGroup.members.length} thành viên</p>
+            <p className="text-xs text-muted-foreground">
+              {t('groups.membersCount', { count: String(myGroup.members.length) })}
+            </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 py-8 gap-2 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800 py-8 gap-2 text-center">
             <Users className="h-7 w-7 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">Bạn chưa được xếp vào nhóm nào</p>
+            <p className="text-sm text-muted-foreground">{t('studentGroups.notAssigned')}</p>
           </div>
         )}
       </div>
@@ -93,7 +101,7 @@ export default function StudentGroupsPage() {
       {allGroups.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            Tất cả nhóm ({allGroups.length})
+            {t('studentGroups.allGroupsTitle', { count: String(allGroups.length) })}
           </h3>
           <div className="space-y-2">
             {allGroups.map((g) => {
@@ -102,15 +110,17 @@ export default function StudentGroupsPage() {
               return (
                 <div
                   key={g._id}
-                  className={`rounded-xl border bg-white p-3 space-y-2 ${isMyGroup ? 'border-primary/30 bg-primary/5' : ''}`}
+                  className={`rounded-xl border bg-white dark:bg-slate-900 p-3 space-y-2 ${isMyGroup ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : ''}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-sm font-medium ${isMyGroup ? 'text-primary' : ''}`}>
                       {g.name}
-                      {isMyGroup && <span className="ml-2 text-xs">— nhóm của bạn</span>}
+                      {isMyGroup && (
+                        <span className="ml-2 text-xs">{t('studentGroups.myGroupBadge')}</span>
+                      )}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {members.length} thành viên
+                      {t('groups.membersCount', { count: String(members.length) })}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">

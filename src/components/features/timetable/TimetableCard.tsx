@@ -42,7 +42,7 @@ function getNextCAttend(cAttends: CAttend[]): CAttend | null {
 }
 
 export function TimetableCard({ subject, role }: TimetableCardProps) {
-  const { t } = useT();
+  const { t, locale } = useT();
 
   const getDayLong = (d: Date): string => {
     const idx = d.getDay() === 0 ? 7 : d.getDay();
@@ -52,7 +52,7 @@ export function TimetableCard({ subject, role }: TimetableCardProps) {
   const formatSessionDate = (date: string, classSession?: ClassSession | null): string => {
     const d = new Date(date);
     const day = getDayLong(d);
-    const dateStr = d.toLocaleDateString('vi-VN', {
+    const dateStr = d.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

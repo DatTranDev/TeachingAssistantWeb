@@ -10,17 +10,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useChannelRoom } from '@/hooks/use-room';
 import { useSocketEvent } from '@/hooks/use-socket-event';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useT } from '@/hooks/use-t';
 import type { Post, User } from '@/types/domain';
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'vừa xong';
-  if (mins < 60) return `${mins} phút trước`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} giờ trước`;
-  return new Date(dateStr).toLocaleDateString('vi-VN');
-}
 
 function getCreator(creator: Post['creator']): User | null {
   if (typeof creator === 'object' && creator !== null) return creator as User;
@@ -30,7 +21,18 @@ function getCreator(creator: Post['creator']): User | null {
 export default function StudentChannelPage() {
   const { subjectId } = useSubject();
   const { user } = useAuth();
+  const { t, locale } = useT();
   const queryClient = useQueryClient();
+
+  const timeAgo = (dateStr: string): string => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return t('channel.timeJustNow');
+    if (mins < 60) return t('channel.timeMinsAgo', { n: String(mins) });
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return t('channel.timeHoursAgo', { n: String(hrs) });
+    return new Date(dateStr).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US');
+  };
 
   const { data: channels = [], isLoading: loadingChannels } = useQuery({
     queryKey: queryKeys.channels.bySubject(subjectId),
@@ -76,10 +78,10 @@ export default function StudentChannelPage() {
 
   if (!mainChannel || sortedPosts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 py-12 gap-3 text-center">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800 py-12 gap-3 text-center">
         <Hash className="h-8 w-8 text-muted-foreground/40" />
-        <p className="font-medium text-muted-foreground">Chưa có thông báo nào</p>
-        <p className="text-sm text-muted-foreground">Giảng viên sẽ đăng thông báo ở đây</p>
+        <p className="font-medium text-muted-foreground">{t('channel.noAnnouncements')}</p>
+        <p className="text-sm text-muted-foreground">{t('channel.noAnnouncementsDesc')}</p>
       </div>
     );
   }
@@ -89,13 +91,18 @@ export default function StudentChannelPage() {
       {sortedPosts.map((post) => {
         const creator = getCreator(post.creator);
         return (
-          <div key={post._id} className="rounded-xl border bg-white p-5 space-y-3">
+          <div
+            key={post._id}
+            className="rounded-xl border bg-white dark:bg-slate-900 p-5 space-y-3"
+          >
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-sm font-semibold text-primary">
                 {creator?.name?.[0]?.toUpperCase() ?? 'T'}
               </div>
               <div>
-                <p className="text-sm font-medium">{creator?.name ?? 'Giảng viên'}</p>
+                <p className="text-sm font-medium">
+                  {creator?.name ?? t('channel.teacherFallback')}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {post.createdAt ? timeAgo(post.createdAt) : ''}
                 </p>

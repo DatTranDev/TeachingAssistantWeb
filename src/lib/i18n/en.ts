@@ -128,6 +128,13 @@ export interface Translations {
     short: { d1: string; d2: string; d3: string; d4: string; d5: string; d6: string; d7: string };
     long: { d1: string; d2: string; d3: string; d4: string; d5: string; d6: string; d7: string };
   };
+  weekCalendar: {
+    today: string;
+    weekView: string;
+    noSessions: string;
+    noSessionsDesc: string;
+    room: string;
+  };
   sessions: {
     createBtn: string;
     empty: string;
@@ -425,6 +432,8 @@ export interface Translations {
     sessionLabel: string;
     deleteConfirmTitle: string;
     deleteConfirmDesc: string;
+    downloadBtn: string;
+    noSessions: string;
   };
   groups: {
     defaultTab: string;
@@ -495,6 +504,8 @@ export interface Translations {
     removeConfirmDesc: string;
     removeSuccess: string;
     removeError: string;
+    roleStudent: string;
+    roleTeacher: string;
     resolvedToast: string;
     unresolvedToast: string;
     resolveError: string;
@@ -508,6 +519,121 @@ export interface Translations {
     askBtn: string;
     sendBtn: string;
     sending: string;
+    revokeAction: string;
+    revokeSuccess: string;
+    revokeError: string;
+    revokedQuestion: string;
+    replyBtn: string;
+    commentCount: string;
+    replyPlaceholder: string;
+    sessionSubtitle: string;
+    sessionSubtitleTeacher: string;
+    emptyNoPosts: string;
+    emptyPostHint: string;
+    createPostDialogTitle: string;
+    postTitleLabel: string;
+    titleOptional: string;
+    postTitlePlaceholder: string;
+    contentLabel: string;
+    postContentPlaceholder: string;
+    addImageBtn: string;
+    uploadingImages: string;
+    postBtn: string;
+    posting: string;
+  };
+  discussionHub: {
+    generalLabel: string;
+    generalTitle: string;
+    generalDesc: string;
+    enterGeneral: string;
+    groupLabel: string;
+    fixedGroupTitle: string;
+    fixedGroupDesc: string;
+    viewGroups: string;
+    myGroup: string;
+    sessionQATitle: string;
+    sessionGroupsTitle: string;
+    noSessionsForSubject: string;
+    sessionN: string;
+    enterDiscussion: string;
+    enterGroup: string;
+    noRandomGroups: string;
+    sessionRef: string;
+    noLinkedSession: string;
+  };
+  groupChat: {
+    today: string;
+    yesterday: string;
+    noMessages: string;
+    revokedMessage: string;
+    revokeAction: string;
+    revokeSuccess: string;
+    revokeError: string;
+    sendError: string;
+    messagePlaceholder: string;
+    groupFallbackName: string;
+  };
+  sessionStatus: {
+    live: string;
+    upcoming: string;
+    ended: string;
+    cancelled: string;
+  };
+  studentStatistics: {
+    overallTitle: string;
+    breakdownTitle: string;
+    historyTitle: string;
+    sessionsAttended: string;
+    ratingGood: string;
+    ratingAverage: string;
+    ratingAttention: string;
+    statusPresent: string;
+    statusAbsent: string;
+    statusExcused: string;
+    statusNotRecorded: string;
+  };
+  studentGroups: {
+    myGroupTitle: string;
+    enterChat: string;
+    youLabel: string;
+    notAssigned: string;
+    allGroupsTitle: string;
+    myGroupBadge: string;
+  };
+  studentAttendance: {
+    attendanceOpen: string;
+    sessionLabel: string;
+    checkInDone: string;
+    locating: string;
+    processing: string;
+    checkInBtn: string;
+    locationNote: string;
+    locationDenied: string;
+    noActive: string;
+    waitTeacher: string;
+    historyTitle: string;
+    colDate: string;
+    colSession: string;
+    colStatus: string;
+    statusNotRecorded: string;
+    requestAbsenceBtn: string;
+    statusPresent: string;
+    statusAbsent: string;
+    statusExcused: string;
+    absenceTitle: string;
+    absenceColSession: string;
+    absenceColReason: string;
+    absenceColDoc: string;
+    absenceColStatus: string;
+    viewFile: string;
+    checkInSuccess: string;
+    checkInExpired: string;
+    checkInAlready: string;
+    checkInOutOfRange: string;
+    locationError: string;
+    statusPending: string;
+    statusApproved: string;
+    statusRejected: string;
   };
   channel: {
     noChannel: string;
@@ -528,6 +654,11 @@ export interface Translations {
     teacherFallback: string;
     postSuccess: string;
     postError: string;
+    noAnnouncements: string;
+    noAnnouncementsDesc: string;
+    timeJustNow: string;
+    timeMinsAgo: string;
+    timeHoursAgo: string;
   };
   register: {
     title: string;
@@ -748,6 +879,13 @@ const en: Translations = {
       d6: 'Saturday',
       d7: 'Sunday',
     },
+  },
+  weekCalendar: {
+    today: 'Today',
+    weekView: 'Week',
+    noSessions: 'No scheduled sessions',
+    noSessionsDesc: 'Once class sessions are configured, your weekly schedule will appear here.',
+    room: 'Room',
   },
   sessions: {
     createBtn: 'Create session',
@@ -1069,6 +1207,8 @@ const en: Translations = {
     sessionLabel: 'Session #{{n}}',
     deleteConfirmTitle: 'Delete document?',
     deleteConfirmDesc: 'This will permanently delete the document.',
+    downloadBtn: 'Download',
+    noSessions: 'No sessions yet',
   },
   groups: {
     defaultTab: 'Manual groups',
@@ -1144,6 +1284,8 @@ const en: Translations = {
     removeConfirmDesc: 'Are you sure you want to remove this student from the class?',
     removeSuccess: 'Student removed from class',
     removeError: 'Cannot remove student. Try again later.',
+    roleStudent: 'Student',
+    roleTeacher: 'Lecturer',
     resolvedToast: 'Marked as answered',
     unresolvedToast: 'Marked as unanswered',
     resolveError: 'An error occurred. Try again later.',
@@ -1157,6 +1299,121 @@ const en: Translations = {
     askBtn: 'Post question',
     sendBtn: 'Send',
     sending: 'Sending...',
+    revokeAction: 'Revoke question',
+    revokeSuccess: 'Question recalled',
+    revokeError: 'Cannot revoke question. Try again later.',
+    revokedQuestion: 'Question was recalled',
+    replyBtn: 'Reply',
+    commentCount: '{{n}} comments',
+    replyPlaceholder: 'Write a reply...',
+    sessionSubtitle: 'Session discussion',
+    sessionSubtitleTeacher: 'Session discussion — Management',
+    emptyNoPosts: 'No posts yet',
+    emptyPostHint: 'Be the first to post!',
+    createPostDialogTitle: 'Create discussion post',
+    postTitleLabel: 'Title',
+    titleOptional: '(optional)',
+    postTitlePlaceholder: 'Post title...',
+    contentLabel: 'Content',
+    postContentPlaceholder: 'What do you want to discuss?',
+    addImageBtn: 'Add images (max 3)',
+    uploadingImages: 'Uploading...',
+    postBtn: 'Post',
+    posting: 'Posting...',
+  },
+  discussionHub: {
+    generalLabel: 'Discussion',
+    generalTitle: 'General Channel',
+    generalDesc: 'Ask anonymous questions in class.',
+    enterGeneral: 'Enter general channel',
+    groupLabel: 'Groups',
+    fixedGroupTitle: 'Fixed Group',
+    fixedGroupDesc: 'Study group assigned for this subject.',
+    viewGroups: 'View groups',
+    myGroup: 'My group',
+    sessionQATitle: 'Ask a question',
+    sessionGroupsTitle: 'Session groups',
+    noSessionsForSubject: 'No sessions found for this subject.',
+    sessionN: 'Session {{n}}',
+    enterDiscussion: 'Enter discussion',
+    enterGroup: 'Enter group',
+    noRandomGroups: 'No random groups have been assigned yet.',
+    sessionRef: 'Session {{n}} — {{date}}',
+    noLinkedSession: 'No linked session',
+  },
+  groupChat: {
+    today: 'Today',
+    yesterday: 'Yesterday',
+    noMessages: 'No messages yet. Start the conversation!',
+    revokedMessage: 'Message was recalled',
+    revokeAction: 'Revoke message',
+    revokeSuccess: 'Message revoked',
+    revokeError: 'Cannot revoke message. Try again.',
+    sendError: 'Cannot send message. Please try again.',
+    messagePlaceholder: 'Type a message...',
+    groupFallbackName: 'Group chat',
+  },
+  sessionStatus: {
+    live: 'Live',
+    upcoming: 'Upcoming',
+    ended: 'Ended',
+    cancelled: 'Cancelled',
+  },
+  studentAttendance: {
+    attendanceOpen: 'Attendance is open',
+    sessionLabel: 'Session #{{n}} — {{date}}',
+    checkInDone: 'Checked in successfully',
+    locating: 'Getting location...',
+    processing: 'Processing...',
+    checkInBtn: 'Check in',
+    locationNote: 'Your location will be used to confirm presence in class.',
+    locationDenied: 'Browser denied location access. Go to browser settings to allow it.',
+    noActive: 'No active attendance',
+    waitTeacher: 'Waiting for teacher to open attendance.',
+    historyTitle: 'Attendance history',
+    colDate: 'Date',
+    colSession: 'Session',
+    colStatus: 'Status',
+    statusNotRecorded: 'Not recorded',
+    requestAbsenceBtn: 'Request',
+    statusPresent: 'Present',
+    statusAbsent: 'Absent',
+    statusExcused: 'Excused',
+    absenceTitle: 'Absence requests',
+    absenceColSession: 'Session',
+    absenceColReason: 'Reason',
+    absenceColDoc: 'Document',
+    absenceColStatus: 'Status',
+    viewFile: 'View file',
+    checkInSuccess: 'Checked in successfully!',
+    checkInExpired: 'Attendance round has ended',
+    checkInAlready: 'You have already checked in for this round',
+    checkInOutOfRange: 'You are outside the attendance area',
+    locationError: 'Cannot get location. Try again later.',
+    statusPending: 'Pending',
+    statusApproved: 'Approved',
+    statusRejected: 'Rejected',
+  },
+  studentStatistics: {
+    overallTitle: 'Overall attendance',
+    breakdownTitle: 'Attendance details',
+    historyTitle: 'Attendance history',
+    sessionsAttended: '{{attended}} / {{total}} sessions attended',
+    ratingGood: 'Good',
+    ratingAverage: 'Average',
+    ratingAttention: 'Needs attention',
+    statusPresent: 'Present',
+    statusAbsent: 'Absent',
+    statusExcused: 'Excused',
+    statusNotRecorded: 'Not recorded',
+  },
+  studentGroups: {
+    myGroupTitle: 'Your group',
+    enterChat: 'Enter group chat',
+    youLabel: 'You',
+    notAssigned: "You haven't been assigned to a group",
+    allGroupsTitle: 'All groups ({{count}})',
+    myGroupBadge: '— your group',
   },
   channel: {
     noChannel: 'No channel yet',
@@ -1177,6 +1434,11 @@ const en: Translations = {
     teacherFallback: 'Teacher',
     postSuccess: 'Post published',
     postError: 'Cannot post. Please try again.',
+    noAnnouncements: 'No announcements yet',
+    noAnnouncementsDesc: 'Your teacher will post announcements here',
+    timeJustNow: 'just now',
+    timeMinsAgo: '{{n}} min ago',
+    timeHoursAgo: '{{n}} hr ago',
   },
   register: {
     title: 'Create account',

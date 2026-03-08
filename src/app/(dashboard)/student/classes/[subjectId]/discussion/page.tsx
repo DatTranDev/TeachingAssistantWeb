@@ -1,342 +1,205 @@
-﻿'use client';
-
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MessageSquare, ThumbsUp, Paperclip } from 'lucide-react';
-import { toast } from 'sonner';
-import { questionsApi } from '@/lib/api/questions';
+'use client';
+import Link from 'next/link';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { MessageCircle, BookOpenText, Users, CalendarDays } from 'lucide-react';
+import { cAttendApi } from '@/lib/api/cAttend';
+import { groupsApi } from '@/lib/api/groups';
 import { queryKeys } from '@/lib/api/queryKeys';
 import { useSubject } from '@/contexts/SubjectContext';
-import { useAuth } from '@/hooks/use-auth';
-import { useSubjectRoom } from '@/hooks/use-room';
-import { useSocketEvent } from '@/hooks/use-socket-event';
-import { useSocket } from '@/providers/socket-provider';
 import { useT } from '@/hooks/use-t';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import type { Question, User } from '@/types/domain';
+import { Button } from '@/components/ui/button';
+import type { CAttend, Group } from '@/types/domain';
 
-type SortMode = 'recent' | 'votes';
-type FilterMode = 'all' | 'mine';
-
-function getauthor(studentId: Question['studentId']): User | null {
-  if (typeof studentId === 'object' && studentId !== null) return studentId as User;
-  return null;
+function getCAttendId(cAttendId: Group['cAttendId']): string {
+  if (!cAttendId) return '';
+  if (typeof cAttendId === 'string') return cAttendId;
+  return cAttendId._id;
 }
 
-function isImageUrl(url: string): boolean {
-  return (
-    /^https?:\/\//.test(url) &&
-    /\.(jpg|jpeg|png|gif|webp|svg)|(firebasestorage\.googleapis\.com)/i.test(url)
-  );
+function formatSessionDate(input: string): string {
+  return new Date(input).toLocaleDateString('vi-VN');
 }
 
-function QuestionImage({ src }: { src: string }) {
-  const [imgStatus, setImgStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
-  return (
-    <div className="mt-1">
-      {imgStatus === 'loading' && <Skeleton className="h-56 w-full max-w-sm rounded-xl" />}
-      {imgStatus === 'error' ? (
-        <a
-          href={src}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-neutral-50 dark:bg-slate-800 px-4 py-3 text-sm text-primary hover:bg-neutral-100 dark:hover:bg-slate-700 transition-colors"
-        >
-          <Paperclip className="h-4 w-4 shrink-0" />
-          <span className="truncate max-w-xs">View attachment</span>
-        </a>
-      ) : (
-        <img
-          src={src}
-          alt=""
-          className={cn(
-            'max-h-80 max-w-full rounded-xl object-contain border cursor-zoom-in',
-            imgStatus === 'loading' ? 'hidden' : 'block'
-          )}
-          onLoad={() => setImgStatus('loaded')}
-          onError={() => setImgStatus('error')}
-          onClick={() => window.open(src, '_blank')}
-        />
-      )}
-    </div>
-  );
-}
-
-export default function StudentDiscussionPage() {
+export default function StudentDiscussionHubPage() {
   const { subjectId } = useSubject();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { socket } = useSocket();
   const { t } = useT();
 
-  const timeAgo = (dateStr: string): string => {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return t('timeAgo.justNow');
-    if (mins < 60) return t('timeAgo.minutesAgo', { count: String(mins) });
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return t('timeAgo.hoursAgo', { count: String(hrs) });
-    return t('timeAgo.daysAgo', { count: String(Math.floor(hrs / 24)) });
-  };
-
-  const [content, setContent] = useState('');
-  const [sort, setSort] = useState<SortMode>('recent');
-  const [filter, setFilter] = useState<FilterMode>('all');
-
-  useSubjectRoom(user?._id, subjectId);
-
-  const { data: questions = [], isLoading } = useQuery({
-    queryKey: queryKeys.questions.bySubject(subjectId),
-    queryFn: () => questionsApi.getBySubject(subjectId),
+  const { data: cAttends = [], isLoading: loadingSessions } = useQuery({
+    queryKey: queryKeys.cAttend.bySubject(subjectId),
+    queryFn: () => cAttendApi.getBySubject(subjectId),
     staleTime: 30_000,
   });
 
-  // Real-time: new question from someone else
-  const handleReceiveSubjectMessage = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.questions.bySubject(subjectId) });
-  }, [queryClient, subjectId]);
-  useSocketEvent('receiveSubjectMessage', handleReceiveSubjectMessage);
-
-  // Real-time: resolved question
-  const handleReceiveResolve = useCallback(
-    (questionId: string) => {
-      queryClient.setQueryData(
-        queryKeys.questions.bySubject(subjectId),
-        (old: Question[] | undefined) =>
-          old?.map((q) => (q._id === questionId ? { ...q, isResolved: true } : q)) ?? []
-      );
-    },
-    [queryClient, subjectId]
-  );
-  useSocketEvent('receiveResolve', handleReceiveResolve);
-
-  // Real-time: vote update
-  const handleReceiveVote = useCallback(
-    (updated: Question) => {
-      queryClient.setQueryData(
-        queryKeys.questions.bySubject(subjectId),
-        (old: Question[] | undefined) =>
-          old?.map((q) => (q._id === updated._id ? { ...q, ...updated } : q)) ?? []
-      );
-    },
-    [queryClient, subjectId]
-  );
-  useSocketEvent('receiveVote', handleReceiveVote as (msg: unknown) => void);
-
-  const createMutation = useMutation({
-    mutationFn: () =>
-      questionsApi.create({
-        subjectId,
-        studentId: user!._id,
-        type: 'text',
-        content: content.trim(),
-      }),
-    onSuccess: (newQuestion) => {
-      queryClient.setQueryData(
-        queryKeys.questions.bySubject(subjectId),
-        (old: Question[] | undefined) => [newQuestion, ...(old ?? [])]
-      );
-      // Notify others in subject room
-      if (socket && user) {
-        socket.emit('sendMessageToSubject', {
-          subjectID: subjectId,
-          message: newQuestion,
-          dataMsg: { title: 'Câu hỏi mới', body: content.trim(), subjectId },
-        });
-      }
-      setContent('');
-      toast.success('Đã đăng câu hỏi');
-    },
-    onError: () => toast.error('Không thể đăng câu hỏi. Thử lại sau.'),
+  const { data: defaultGroup, isLoading: loadingDefaultGroup } = useQuery({
+    queryKey: queryKeys.groups.myDefault(subjectId),
+    queryFn: () => groupsApi.getMyDefaultGroup(subjectId),
+    staleTime: 60_000,
   });
 
-  // Build stable anonymous identity map: studentId -> sequential number
-  const anonymousMap = useMemo(() => {
-    const map = new Map<string, number>();
-    let counter = 0;
-    const sorted = [...questions].sort(
-      (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
-    );
-    for (const q of sorted) {
-      const auth = getauthor(q.studentId);
-      const id = auth?._id ?? (typeof q.studentId === 'string' ? q.studentId : '');
-      if (id && !map.has(id)) {
-        counter++;
-        map.set(id, counter);
-      }
+  const { data: randomGroups = [], isLoading: loadingRandomGroups } = useQuery({
+    queryKey: queryKeys.groups.myRandom(subjectId),
+    queryFn: () => groupsApi.getMyRandomGroups(subjectId),
+    staleTime: 60_000,
+  });
+
+  const cAttendMap = useMemo(() => {
+    const map = new Map<string, CAttend>();
+    for (const cAttend of cAttends) {
+      map.set(cAttend._id, cAttend);
     }
     return map;
-  }, [questions]);
+  }, [cAttends]);
 
-  const displayed = useMemo(() => {
-    let list = [...questions];
-    if (filter === 'mine') {
-      list = list.filter((q) => {
-        const sid = typeof q.studentId === 'string' ? q.studentId : (q.studentId as User)._id;
-        return sid === user?._id;
-      });
-    }
-    if (sort === 'recent') {
-      list.sort(
-        (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
-      );
-    } else {
-      // votes = upvotes array length (not directly available — sort by recency as fallback)
-      list.sort(
-        (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
-      );
-    }
-    return list;
-  }, [questions, filter, sort, user?._id]);
+  const sortedSessions = useMemo(
+    () => [...cAttends].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [cAttends]
+  );
 
-  const canSubmit = content.trim().length > 0 && content.length <= 500;
+  const sortedRandomGroups = useMemo(
+    () =>
+      [...randomGroups].sort((a, b) => {
+        const aDate = cAttendMap.get(getCAttendId(a.cAttendId))?.date;
+        const bDate = cAttendMap.get(getCAttendId(b.cAttendId))?.date;
+        return new Date(bDate ?? 0).getTime() - new Date(aDate ?? 0).getTime();
+      }),
+    [randomGroups, cAttendMap]
+  );
 
   return (
     <div className="space-y-6">
-      {/* Post question */}
-      <div className="rounded-xl border bg-white dark:bg-slate-900 dark:border-slate-700 p-4 space-y-3">
-        <p className="text-sm font-medium">{t('discussion.askTitle')}</p>
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={t('discussion.askPlaceholder')}
-          rows={3}
-          maxLength={500}
-          className="resize-none"
-        />
-        <div className="flex items-center justify-between">
-          <span
-            className={cn(
-              'text-xs',
-              content.length > 450 ? 'text-amber-600' : 'text-muted-foreground'
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-xl border bg-white dark:bg-slate-900 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t('discussionHub.generalLabel')}
+              </p>
+              <h3 className="text-base font-semibold mt-1">{t('discussionHub.generalTitle')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{t('discussionHub.generalDesc')}</p>
+            </div>
+            <BookOpenText className="h-5 w-5 text-primary shrink-0" />
+          </div>
+          <div className="mt-4">
+            <Link href={`/student/classes/${subjectId}/discussion/general`}>
+              <Button size="sm" className="gap-2">
+                <MessageCircle className="h-4 w-4" />
+                {t('discussionHub.enterGeneral')}
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-white dark:bg-slate-900 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t('discussionHub.groupLabel')}
+              </p>
+              <h3 className="text-base font-semibold mt-1">{t('discussionHub.fixedGroupTitle')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t('discussionHub.fixedGroupDesc')}
+              </p>
+            </div>
+            <Users className="h-5 w-5 text-primary shrink-0" />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Link href={`/student/classes/${subjectId}/groups`}>
+              <Button size="sm" variant="outline">
+                {t('discussionHub.viewGroups')}
+              </Button>
+            </Link>
+            {defaultGroup && (
+              <Link href={`/student/classes/${subjectId}/groups/${defaultGroup._id}/chat`}>
+                <Button size="sm">{t('discussionHub.myGroup')}</Button>
+              </Link>
             )}
-          >
-            {content.length}/500
-          </span>
-          <Button
-            size="sm"
-            onClick={() => createMutation.mutate()}
-            disabled={!canSubmit || createMutation.isPending || !user}
-          >
-            {createMutation.isPending ? t('discussion.sending') : t('discussion.askBtn')}
-          </Button>
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
-      {!isLoading && questions.length > 0 && (
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex gap-1 rounded-lg bg-neutral-100 dark:bg-slate-800 p-1">
-            {(['recent', 'votes'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setSort(s)}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                  sort === s
-                    ? 'bg-white dark:bg-slate-700 shadow-sm text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {s === 'recent' ? t('discussion.sortRecent') : t('discussion.sortVotes')}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1 rounded-lg bg-neutral-100 dark:bg-slate-800 p-1">
-            {(['all', 'mine'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                  filter === f
-                    ? 'bg-white dark:bg-slate-700 shadow-sm text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {f === 'all' ? t('discussion.filterAll') : t('discussion.filterMine')}
-              </button>
-            ))}
-          </div>
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold">{t('discussionHub.sessionQATitle')}</h2>
         </div>
-      )}
 
-      {/* Question list */}
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-xl" />
-          ))}
-        </div>
-      ) : displayed.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800/50 dark:border-slate-700 py-12 gap-3 text-center">
-          <MessageSquare className="h-8 w-8 text-muted-foreground/40" />
-          <p className="font-medium text-muted-foreground">
-            {filter === 'mine' ? t('discussion.emptyMine') : t('discussion.emptyNoQuestions')}
-          </p>
-          <p className="text-sm text-muted-foreground">{t('discussion.emptyHint')}</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {displayed.map((q) => {
-            const author = getauthor(q.studentId);
-            const isOwn = author?._id === user?._id;
-            const authorId = author?._id ?? (typeof q.studentId === 'string' ? q.studentId : '');
-            const anonNumber = anonymousMap.get(authorId);
-            const displayName = isOwn
-              ? t('discussion.anonymousN', { n: String(anonNumber ?? '?') })
-              : t('discussion.anonymousN', { n: String(anonNumber ?? '?') });
-            return (
+        {loadingSessions ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : sortedSessions.length === 0 ? (
+          <div className="rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800/50 p-6 text-sm text-muted-foreground">
+            {t('discussionHub.noSessionsForSubject')}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {sortedSessions.map((session) => (
               <div
-                key={q._id}
-                className="rounded-xl border bg-white dark:bg-slate-900 dark:border-slate-700 p-4 space-y-2 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-colors"
+                key={session._id}
+                className="rounded-xl border bg-white dark:bg-slate-900 p-3 flex items-center justify-between gap-3"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-7 w-7 rounded-full bg-neutral-200 dark:bg-slate-700 flex items-center justify-center shrink-0 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
-                      {anonNumber ?? '?'}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-sm font-medium leading-tight">{displayName}</span>
-                      {isOwn && (
-                        <span className="ml-1.5 text-xs text-muted-foreground">
-                          {t('discussion.youLabel')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {q.createdAt ? timeAgo(q.createdAt) : ''}
-                  </span>
+                <div>
+                  <p className="font-medium">
+                    {t('discussionHub.sessionN', { n: String(session.sessionNumber) })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{formatSessionDate(session.date)}</p>
                 </div>
-
-                {isImageUrl(q.content) ? (
-                  <QuestionImage src={q.content} />
-                ) : (
-                  <p className="text-sm leading-relaxed">{q.content}</p>
-                )}
-
-                <div className="flex items-center gap-2 pt-1">
-                  {q.isResolved && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
-                      ✓ {t('discussion.resolved')}
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <ThumbsUp className="h-3.5 w-3.5" />
-                    {Array.isArray((q as Question & { upvotes?: string[] }).upvotes)
-                      ? ((q as Question & { upvotes?: string[] }).upvotes?.length ?? 0)
-                      : 0}
-                  </span>
-                </div>
+                <Link href={`/student/classes/${subjectId}/discussion/sessions/${session._id}`}>
+                  <Button size="sm">{t('discussionHub.enterDiscussion')}</Button>
+                </Link>
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">{t('discussionHub.sessionGroupsTitle')}</h2>
+        {loadingRandomGroups || loadingDefaultGroup ? (
+          <div className="space-y-2">
+            {[1, 2].map((i) => (
+              <Skeleton key={i} className="h-14 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : sortedRandomGroups.length === 0 ? (
+          <div className="rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800/50 p-6 text-sm text-muted-foreground">
+            {t('discussionHub.noRandomGroups')}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {sortedRandomGroups.map((group) => {
+              const cAttend = cAttendMap.get(getCAttendId(group.cAttendId));
+              return (
+                <div
+                  key={group._id}
+                  className="rounded-xl border bg-white dark:bg-slate-900 p-3 flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <p className="font-medium">{group.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {cAttend
+                        ? t('discussionHub.sessionRef', {
+                            n: String(cAttend.sessionNumber),
+                            date: formatSessionDate(cAttend.date),
+                          })
+                        : t('discussionHub.noLinkedSession')}
+                    </p>
+                  </div>
+                  <Link href={`/student/classes/${subjectId}/groups/${group._id}/chat`}>
+                    <Button size="sm" variant="outline">
+                      {t('discussionHub.enterGroup')}
+                    </Button>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

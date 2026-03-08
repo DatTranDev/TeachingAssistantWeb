@@ -108,15 +108,18 @@ export interface Discussion {
   isResolved: boolean;
   upvotes: string[];
   downvotes: string[];
+  reactions?: Reaction[];
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Reaction {
   _id: string;
+  id?: string;
   discussionId: string | Discussion;
   userId: string | User;
-  emoji: string;
+  /** 1=😊 2=👍 3=❤️ 4=😮 5=😢 */
+  type: 1 | 2 | 3 | 4 | 5;
   createdAt?: string;
 }
 
@@ -254,6 +257,7 @@ export interface Question {
   studentId: string | User;
   type: 'text' | 'image';
   content: string;
+  /** true = student revoked (withdrew) the question */
   isResolved: boolean;
   createdAt?: string;
   updatedAt?: string;
