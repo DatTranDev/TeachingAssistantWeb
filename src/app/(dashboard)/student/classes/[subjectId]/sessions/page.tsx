@@ -44,7 +44,10 @@ function AttendStatusBadge({ status }: { status: AttendanceStatus | null }) {
       label: t('studentSessions.attendStatus.present'),
       className: 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',
     },
-    KP: { label: t('studentSessions.attendStatus.absent'), className: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' },
+    KP: {
+      label: t('studentSessions.attendStatus.absent'),
+      className: 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400',
+    },
     CP: {
       label: t('studentSessions.attendStatus.excused'),
       className: 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400',
@@ -411,7 +414,10 @@ export default function StudentSessionsPage() {
                 const isPast = status === 'ended';
                 const hasReviewed = reviewedIds.has(cAttend._id);
                 return (
-                  <tr key={cAttend._id} className="hover:bg-neutral-50 dark:hover:bg-slate-800 transition-colors">
+                  <tr
+                    key={cAttend._id}
+                    className="hover:bg-neutral-50 dark:hover:bg-slate-800 transition-colors"
+                  >
                     <td className="px-4 py-3 text-muted-foreground">{idx + 1}</td>
                     <td className="px-4 py-3">
                       <div>{formatDate(cAttend.date)}</div>
