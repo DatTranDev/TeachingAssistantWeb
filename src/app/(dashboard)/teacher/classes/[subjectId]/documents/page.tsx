@@ -2,7 +2,16 @@
 
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FileText, File, Download, Trash2, Upload, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  FileText,
+  File,
+  Download,
+  Trash2,
+  Upload,
+  Pencil,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { cAttendApi } from '@/lib/api/cAttend';
 import { documentsApi } from '@/lib/api/documents';
@@ -12,8 +21,16 @@ import { useAuth } from '@/hooks/use-auth';
 import { useT } from '@/hooks/use-t';
 import type { TKey } from '@/hooks/use-t';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import type { CAttend, Document as Doc } from '@/types/domain';
 
@@ -48,6 +65,8 @@ function SessionDocSection({ session, userId }: { session: CAttend; userId: stri
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<Doc | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Doc | null>(null);
+  const [renameName, setRenameName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: docs = [], isLoading } = useQuery({
@@ -75,6 +94,28 @@ function SessionDocSection({ session, userId }: { session: CAttend; userId: stri
     onSuccess: () => {
       toast.success(t('documents.deleteSuccess'));
       setDeleteTarget(null);
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => documentsApi.update(id, name),
+    onMutate: async ({ id, name }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.documents.byCAttend(session._id) });
+      const snapshot = queryClient.getQueryData(queryKeys.documents.byCAttend(session._id));
+      queryClient.setQueryData(
+        queryKeys.documents.byCAttend(session._id),
+        (old: Doc[] | undefined) => old?.map((d) => (d._id === id ? { ...d, name } : d)) ?? []
+      );
+      return { snapshot };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot)
+        queryClient.setQueryData(queryKeys.documents.byCAttend(session._id), ctx.snapshot);
+      toast.error(t('documents.renameFailed'));
+    },
+    onSuccess: () => {
+      toast.success(t('documents.renameSuccess'));
+      setRenameTarget(null);
     },
   });
 
@@ -190,6 +231,17 @@ function SessionDocSection({ session, userId }: { session: CAttend; userId: stri
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-7 px-2"
+                            onClick={() => {
+                              setRenameTarget(doc);
+                              setRenameName(doc.name);
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-7 px-2 text-red-600 hover:bg-red-50"
                             onClick={() => setDeleteTarget(doc)}
                           >
@@ -219,6 +271,50 @@ function SessionDocSection({ session, userId }: { session: CAttend; userId: stri
         isLoading={deleteMutation.isPending}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget._id)}
       />
+
+      <Dialog
+        open={!!renameTarget}
+        onOpenChange={(open) => {
+          if (!open) setRenameTarget(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('documents.renameTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <Input
+              value={renameName}
+              onChange={(e) => setRenameName(e.target.value)}
+              placeholder={t('documents.renameLabel')}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && renameName.trim()) {
+                  renameMutation.mutate({ id: renameTarget!._id, name: renameName.trim() });
+                }
+              }}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setRenameTarget(null)}
+              disabled={renameMutation.isPending}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              onClick={() =>
+                renameName.trim() &&
+                renameMutation.mutate({ id: renameTarget!._id, name: renameName.trim() })
+              }
+              disabled={renameMutation.isPending || !renameName.trim()}
+            >
+              {t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

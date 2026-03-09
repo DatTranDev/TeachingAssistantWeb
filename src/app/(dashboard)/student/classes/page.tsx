@@ -56,17 +56,7 @@ export default function StudentClassesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-slate-100">
-            {t('student.classes.title')}
-          </h1>
-          {!isLoading && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('student.classes.subtitle', { count: subjects.length })}
-            </p>
-          )}
-        </div>
+      <div className="flex items-center justify-end">
         <Button onClick={() => setJoinModalOpen(true)}>
           <LogIn className="mr-2 h-4 w-4" />
           {t('student.classes.join')}
@@ -147,4 +137,3 @@ export default function StudentClassesPage() {
     </div>
   );
 }
-

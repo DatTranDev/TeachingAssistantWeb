@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { MoreVertical, ChevronRight } from 'lucide-react';
 import type { Subject } from '@/types/domain';
 import { Button } from '@/components/ui/button';
+import { useT } from '@/hooks/use-t';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ interface StudentSubjectCardProps {
 }
 
 export function StudentSubjectCard({ subject, onLeave }: StudentSubjectCardProps) {
+  const { t } = useT();
   const teacherName =
     typeof subject.hostId !== 'string' ? (subject.hostId as { name: string }).name : '';
 
@@ -31,19 +32,19 @@ export function StudentSubjectCard({ subject, onLeave }: StudentSubjectCardProps
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
               <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Tùy chọn</span>
+              <span className="sr-only">{t('user.userOptions')}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/student/classes/${subject._id}`}>Xem chi tiết</Link>
+              <Link href={`/student/classes/${subject._id}`}>{t('subjects.card.viewDetail')}</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onSelect={() => onLeave(subject)}
             >
-              Rời lớp học
+              {t('student.classes.leave')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -54,7 +55,12 @@ export function StudentSubjectCard({ subject, onLeave }: StudentSubjectCardProps
         <p>
           <span className="font-medium text-foreground uppercase">{subject.code}</span>
         </p>
-        {teacherName && <p>Giảng viên: {teacherName}</p>}
+        {teacherName && (
+          <p>
+            {t('subjects.header.teacherLabel')}
+            {teacherName}
+          </p>
+        )}
       </div>
 
       <div className="border-t dark:border-slate-700" />
@@ -63,7 +69,7 @@ export function StudentSubjectCard({ subject, onLeave }: StudentSubjectCardProps
       <div className="flex justify-end">
         <Button variant="ghost" size="sm" asChild>
           <Link href={`/student/classes/${subject._id}`}>
-            Xem chi tiết <ChevronRight className="ml-1 h-4 w-4" />
+            {t('subjects.card.viewDetail')} <ChevronRight className="ml-1 h-4 w-4" />
           </Link>
         </Button>
       </div>

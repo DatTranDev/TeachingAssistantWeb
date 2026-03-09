@@ -488,6 +488,10 @@ const vi: Translations = {
     deleteConfirmDesc: 'Tài liệu sẽ bị xóa vĩnh viễn.',
     downloadBtn: 'Tải về',
     noSessions: 'Chưa có buổi học nào',
+    renameTitle: 'Đổi tên tài liệu',
+    renameLabel: 'Tên tệp',
+    renameSuccess: 'Đã đổi tên tài liệu',
+    renameFailed: 'Đổi tên thất bại',
   },
   groups: {
     defaultTab: 'Nhóm thủ công',

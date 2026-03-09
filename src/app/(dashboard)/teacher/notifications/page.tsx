@@ -116,16 +116,11 @@ export default function TeacherNotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">{t('notifications.title')}</h1>
-          {unreadCount > 0 && (
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {t('notifications.unread', { count: String(unreadCount) })}
-            </p>
-          )}
-        </div>
-        {unreadCount > 0 && (
+      {unreadCount > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {t('notifications.unread', { count: String(unreadCount) })}
+          </p>
           <Button
             variant="outline"
             size="sm"
@@ -136,8 +131,8 @@ export default function TeacherNotificationsPage() {
             <CheckCheck className="h-4 w-4" />
             {t('notifications.markAllRead')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div className="flex gap-1 bg-neutral-100 dark:bg-slate-800 rounded-lg p-1 w-fit">
@@ -152,7 +147,7 @@ export default function TeacherNotificationsPage() {
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {f === 'all' ? 'Tất cả' : 'Chưa đọc'}
+            {f === 'all' ? t('notifications.filterAll') : t('notifications.filterUnread')}
             {f === 'unread' && unreadCount > 0 && (
               <span className="ml-1.5 rounded-full bg-primary text-white text-xs px-1.5 py-px">
                 {unreadCount}

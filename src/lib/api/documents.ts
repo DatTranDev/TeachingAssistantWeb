@@ -32,4 +32,8 @@ export const documentsApi = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/document/delete/${id}`);
   },
+
+  update: async (id: string, name: string): Promise<void> => {
+    await apiClient.patch(`/document/update/${id}`, { name });
+  },
 };

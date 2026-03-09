@@ -38,8 +38,7 @@ export default function TeacherClassesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">{t('teacher.classes.title')}</h1>
+      <div className="flex items-center justify-end">
         <Button onClick={() => setModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           {t('teacher.classes.create')}

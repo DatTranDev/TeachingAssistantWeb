@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useT } from '@/hooks/use-t';
 import { teacherNavItems, studentNavItems } from '@/constants/navigation';
@@ -28,9 +29,14 @@ export function Sidebar({ collapsed, onToggle, unreadCount }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-border dark:border-slate-700/60 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-3 min-w-0">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
-            <GraduationCap className="h-5 w-5" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Teaching Assistant"
+            width={32}
+            height={32}
+            className="shrink-0 rounded-lg"
+            priority
+          />
           {!collapsed && (
             <span className="font-semibold text-neutral-900 dark:text-slate-100 text-sm truncate">
               Teaching Assistant

@@ -239,7 +239,6 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-
         {/* ── Toolbar ── */}
         <div className="flex items-center justify-between px-5 py-4 border-b bg-white dark:bg-slate-900">
           <h2 className="text-base font-semibold capitalize tracking-tight">{monthLabel}</h2>
@@ -276,7 +275,6 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
         {/* ── Calendar grid ── */}
         <div className="overflow-x-auto">
           <table className="w-full table-fixed border-collapse" style={{ minWidth: '700px' }}>
-
             {/* Day-of-week header */}
             <thead>
               <tr className="bg-neutral-50 dark:bg-slate-950/50">
@@ -312,15 +310,14 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
                         key={di}
                         className={cn(
                           'align-top border border-neutral-100 dark:border-slate-800/70 p-2',
-                          'h-30 w-[calc(100%/7)]',
+                          'min-h-40 w-[calc(100%/7)]',
                           isWeekend && 'bg-neutral-50/70 dark:bg-slate-950/30',
                           isToday && 'bg-primary/3 dark:bg-primary/10',
-                          !date && 'bg-neutral-50/30 dark:bg-slate-950/20',
+                          !date && 'bg-neutral-50/30 dark:bg-slate-950/20'
                         )}
                       >
                         {date && (
                           <div className="flex flex-col gap-1.5 h-full">
-
                             {/* Date number */}
                             <div className="flex justify-end">
                               <span
@@ -329,10 +326,10 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
                                   isToday
                                     ? 'bg-primary text-primary-foreground font-bold'
                                     : isCurrentMonth
-                                    ? isWeekend
-                                      ? 'text-muted-foreground/50'
-                                      : 'text-foreground'
-                                    : 'text-muted-foreground/25',
+                                      ? isWeekend
+                                        ? 'text-muted-foreground/50'
+                                        : 'text-foreground'
+                                      : 'text-muted-foreground/25'
                                 )}
                               >
                                 {date.getDate()}
@@ -344,7 +341,7 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
                               {daySessions.map((cs) => {
                                 const subjectId = getSubjectId(cs.subjectId);
                                 const subject = subjectMap.get(subjectId);
-                                const palette = SUBJECT_PALETTES[(subject?.colorIdx ?? 0)]!;
+                                const palette = SUBJECT_PALETTES[subject?.colorIdx ?? 0]!;
                                 const detailHref =
                                   role === 'teacher'
                                     ? `/teacher/classes/${subjectId}`
@@ -358,30 +355,50 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
                                         className={cn(
                                           'block rounded-xl border px-2 py-1.5 text-left',
                                           'transition-all duration-150 hover:shadow-md hover:-translate-y-px active:scale-[0.98]',
-                                          palette.card,
+                                          palette.card
                                         )}
                                       >
                                         {/* Subject code */}
-                                        <p className={cn('text-[11px] font-bold leading-tight truncate', palette.title)}>
+                                        <p
+                                          className={cn(
+                                            'text-xs font-bold leading-tight truncate',
+                                            palette.title
+                                          )}
+                                        >
                                           {subject?.code ?? '—'}
                                         </p>
 
                                         {/* Subject name */}
                                         {subject?.name && (
-                                          <p className={cn('text-[10px] leading-tight truncate mt-0.5', palette.muted)}>
+                                          <p
+                                            className={cn(
+                                              'text-[11px] leading-tight truncate mt-0.5',
+                                              palette.muted
+                                            )}
+                                          >
                                             {subject.name}
                                           </p>
                                         )}
 
                                         {/* Badges row */}
                                         <div className="flex flex-wrap gap-1 mt-1.5">
-                                          <span className={cn('inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium', palette.badge)}>
-                                            <Clock className="h-2.25 w-2.25" />
+                                          <span
+                                            className={cn(
+                                              'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                                              palette.badge
+                                            )}
+                                          >
+                                            <Clock className="h-3 w-3" />
                                             {cs.start}–{cs.end}
                                           </span>
                                           {cs.room && (
-                                            <span className={cn('inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium', palette.badge)}>
-                                              <MapPin className="h-2.25 w-2.25" />
+                                            <span
+                                              className={cn(
+                                                'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                                                palette.badge
+                                              )}
+                                            >
+                                              <MapPin className="h-3 w-3" />
                                               {cs.room}
                                             </span>
                                           )}
@@ -396,15 +413,35 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
                                       className="p-0 w-56 rounded-2xl overflow-hidden border-0 shadow-xl"
                                     >
                                       {/* Colored header */}
-                                      <div className={cn('px-3.5 pt-3 pb-2.5 border-b', palette.tooltip)}>
+                                      <div
+                                        className={cn(
+                                          'px-3.5 pt-3 pb-2.5 border-b',
+                                          palette.tooltip
+                                        )}
+                                      >
                                         <div className="flex items-start gap-2">
-                                          <div className={cn('mt-0.5 h-2.5 w-2.5 rounded-full shrink-0', palette.dot)} />
+                                          <div
+                                            className={cn(
+                                              'mt-0.5 h-2.5 w-2.5 rounded-full shrink-0',
+                                              palette.dot
+                                            )}
+                                          />
                                           <div className="min-w-0">
-                                            <p className={cn('text-xs font-bold leading-tight', palette.title)}>
+                                            <p
+                                              className={cn(
+                                                'text-xs font-bold leading-tight',
+                                                palette.title
+                                              )}
+                                            >
                                               {subject?.code ?? '—'}
                                             </p>
                                             {subject?.name && (
-                                              <p className={cn('text-[11px] mt-0.5 leading-snug', palette.muted)}>
+                                              <p
+                                                className={cn(
+                                                  'text-[11px] mt-0.5 leading-snug',
+                                                  palette.muted
+                                                )}
+                                              >
                                                 {subject.name}
                                               </p>
                                             )}
@@ -421,7 +458,9 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
                                         {cs.room && (
                                           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                                             <MapPin className="h-3 w-3 shrink-0" />
-                                            <span>{t('weekCalendar.room')}: {cs.room}</span>
+                                            <span>
+                                              {t('weekCalendar.room')}: {cs.room}
+                                            </span>
                                           </div>
                                         )}
                                       </div>
@@ -464,4 +503,3 @@ export function WeekCalendar({ role }: WeekCalendarProps) {
     </TooltipProvider>
   );
 }
-

@@ -41,7 +41,7 @@ export function SubjectTabs({ subjectId, role }: SubjectTabsProps) {
   const tabs = role === 'teacher' ? TEACHER_TABS : STUDENT_TABS;
 
   return (
-    <div className="border-b bg-white dark:bg-slate-900 sticky top-0 z-20">
+    <div className="border-b bg-white dark:bg-slate-900 shrink-0">
       <nav className="flex overflow-x-auto scrollbar-none -mb-px">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');

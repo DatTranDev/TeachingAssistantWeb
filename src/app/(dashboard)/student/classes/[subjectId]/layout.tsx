@@ -32,8 +32,8 @@ export default function StudentSubjectLayout({
         isLoading,
       }}
     >
-      <div className="flex flex-col min-h-full">
-        <div className="px-4 pt-4 lg:px-6 lg:pt-6">
+      <div className="flex flex-col h-full">
+        <div className="shrink-0 px-4 pt-2 lg:px-6 lg:pt-3">
           <SubjectHeader
             subject={data?.subject ?? null}
             isLoading={isLoading}
@@ -44,7 +44,7 @@ export default function StudentSubjectLayout({
 
         <SubjectTabs subjectId={subjectId} role="student" />
 
-        <div className="flex-1 p-4 lg:p-6">{children}</div>
+        <div className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-6">{children}</div>
       </div>
     </SubjectContext.Provider>
   );

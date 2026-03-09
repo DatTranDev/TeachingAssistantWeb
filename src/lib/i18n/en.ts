@@ -434,6 +434,10 @@ export interface Translations {
     deleteConfirmDesc: string;
     downloadBtn: string;
     noSessions: string;
+    renameTitle: string;
+    renameLabel: string;
+    renameSuccess: string;
+    renameFailed: string;
   };
   groups: {
     defaultTab: string;
@@ -1209,6 +1213,10 @@ const en: Translations = {
     deleteConfirmDesc: 'This will permanently delete the document.',
     downloadBtn: 'Download',
     noSessions: 'No sessions yet',
+    renameTitle: 'Rename document',
+    renameLabel: 'File name',
+    renameSuccess: 'Document renamed',
+    renameFailed: 'Rename failed',
   },
   groups: {
     defaultTab: 'Manual groups',

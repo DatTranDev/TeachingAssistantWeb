@@ -12,9 +12,10 @@ interface SubjectHeaderProps {
   isLoading: boolean;
   role: 'teacher' | 'student';
   backHref: string;
+  hideBack?: boolean;
 }
 
-export function SubjectHeader({ subject, isLoading, role, backHref }: SubjectHeaderProps) {
+export function SubjectHeader({ subject, isLoading, role, backHref, hideBack }: SubjectHeaderProps) {
   const { t } = useT();
   if (isLoading) {
     return (
@@ -36,12 +37,14 @@ export function SubjectHeader({ subject, isLoading, role, backHref }: SubjectHea
 
   return (
     <div className="pb-4">
-      <Button variant="ghost" size="sm" className="-ml-2 mb-2 text-muted-foreground" asChild>
-        <Link href={backHref}>
-          <ArrowLeft className="mr-1.5 h-4 w-4" />
-          {t('subjects.header.back')}
-        </Link>
-      </Button>
+      {!hideBack && (
+        <Button variant="ghost" size="sm" className="-ml-2 mb-2 text-muted-foreground" asChild>
+          <Link href={backHref}>
+            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            {t('subjects.header.back')}
+          </Link>
+        </Button>
+      )}
 
       <h1 className="text-2xl font-bold">{subject.name}</h1>
 
