@@ -15,7 +15,13 @@ interface SubjectHeaderProps {
   hideBack?: boolean;
 }
 
-export function SubjectHeader({ subject, isLoading, role, backHref, hideBack }: SubjectHeaderProps) {
+export function SubjectHeader({
+  subject,
+  isLoading,
+  role,
+  backHref,
+  hideBack,
+}: SubjectHeaderProps) {
   const { t } = useT();
   if (isLoading) {
     return (

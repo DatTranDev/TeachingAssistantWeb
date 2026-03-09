@@ -29,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning className={openSans.variable}>
-      <body suppressHydrationWarning className="bg-neutral-50 dark:bg-slate-900 text-neutral-900 dark:text-slate-100 antialiased">
+      <body
+        suppressHydrationWarning
+        className="bg-neutral-50 dark:bg-slate-900 text-neutral-900 dark:text-slate-100 antialiased"
+      >
         <LanguageProvider>
           <ColorModeProvider>
             <QueryProvider>
