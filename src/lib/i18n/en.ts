@@ -24,6 +24,7 @@ export interface Translations {
     profile: string;
     dashboard: string;
     classDetail: string;
+    aiAssistant: string;
   };
   auth: {
     login: string;
@@ -719,6 +720,15 @@ export interface Translations {
     };
   };
   timeAgo: { justNow: string; minutesAgo: string; hoursAgo: string; daysAgo: string };
+  aiAssistant: {
+    welcome: string;
+    suggestions: {
+      schedule: string;
+      attendance: string;
+      documents: string;
+      help: string;
+    };
+  };
 }
 
 const en: Translations = {
@@ -747,6 +757,7 @@ const en: Translations = {
     profile: 'Profile',
     dashboard: 'Dashboard',
     classDetail: 'Class Detail',
+    aiAssistant: 'AI Assistant',
   },
   auth: {
     login: 'Sign In',
@@ -1518,6 +1529,15 @@ const en: Translations = {
     minutesAgo: '{{count}} minutes ago',
     hoursAgo: '{{count}} hours ago',
     daysAgo: '{{count}} days ago',
+  },
+  aiAssistant: {
+    welcome: "Hello! I'm your AI Assistant. I can help you with class schedules, attendance, documents, and more. How can I assist you today?",
+    suggestions: {
+      schedule: 'Show me my schedule for today',
+      attendance: 'How is my attendance in Math?',
+      documents: 'Are there any new documents for Physics?',
+      help: 'What else can you do?',
+    },
   },
 };
 

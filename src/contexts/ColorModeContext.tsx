@@ -27,10 +27,14 @@ function getSystemDark() {
 }
 
 export function ColorModeProvider({ children }: { children: React.ReactNode }) {
-  const [colorMode, setColorModeState] = useState<ColorMode>(() => {
-    if (typeof window === 'undefined') return 'system';
-    return (localStorage.getItem(STORAGE_KEY) as ColorMode | null) ?? 'system';
-  });
+  const [colorMode, setColorModeState] = useState<ColorMode>('system');
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY) as ColorMode | null;
+    if (stored) {
+      setColorModeState(stored);
+    }
+  }, []);
 
   const [systemDark, setSystemDark] = useState(getSystemDark);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/api/queryKeys';
 import { notificationsApi } from '@/lib/api/notifications';
@@ -17,10 +17,14 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { user } = useAuth();
 
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('sidebar-collapsed') === 'true';
-  });
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+    if (isCollapsed) {
+      setCollapsed(true);
+    }
+  }, []);
 
   const { data: notifications } = useQuery({
     queryKey: queryKeys.notifications.all,

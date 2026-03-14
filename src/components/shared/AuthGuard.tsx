@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -10,10 +11,18 @@ import { Spinner } from '@/components/ui/spinner';
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isHydrated, isAuthenticated } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
-  if (!isHydrated) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isHydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div 
+        className="min-h-screen flex items-center justify-center" 
+        suppressHydrationWarning
+      >
         <Spinner size="lg" />
       </div>
     );

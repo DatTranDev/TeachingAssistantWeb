@@ -18,12 +18,14 @@ const LanguageContext = createContext<LanguageContextValue>({
 const STORAGE_KEY = 'ta-locale';
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === 'undefined') return defaultLocale;
+  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+
+  useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (stored && stored in locales) return stored;
-    return defaultLocale;
-  });
+    if (stored && stored in locales) {
+      setLocaleState(stored);
+    }
+  }, []);
 
   const setLocale = (next: Locale) => {
     setLocaleState(next);
@@ -36,15 +38,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sync from authenticated user's stored preference when user changes
-  const userLanguage = useAuthStore((s) => s.user?.language as Locale | undefined);
+  // Sync from authenticated user's stored preference on initial load
+  const user = useAuthStore((s) => s.user);
   useEffect(() => {
-    if (userLanguage && userLanguage in locales) {
-      setLocaleState(userLanguage);
-      localStorage.setItem(STORAGE_KEY, userLanguage);
-      document.documentElement.lang = userLanguage;
+    if (user?.language && !localStorage.getItem(STORAGE_KEY)) {
+      setLocaleState(user.language as Locale);
+      localStorage.setItem(STORAGE_KEY, user.language);
+      document.documentElement.lang = user.language;
     }
-  }, [userLanguage]);
+  }, [user?.language]);
 
   // Sync <html lang> whenever locale changes
   useEffect(() => {

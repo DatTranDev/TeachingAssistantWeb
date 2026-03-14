@@ -26,6 +26,7 @@ const vi: Translations = {
     profile: 'Hồ sơ',
     dashboard: 'Dashboard',
     classDetail: 'Chi tiết lớp học',
+    aiAssistant: 'Trợ lý AI',
   },
   auth: {
     login: 'Đăng nhập',
@@ -793,6 +794,15 @@ const vi: Translations = {
     minutesAgo: '{{count}} phút trước',
     hoursAgo: '{{count}} giờ trước',
     daysAgo: '{{count}} ngày trước',
+  },
+  aiAssistant: {
+    welcome: 'Xin chào! Tôi là Trợ lý AI của bạn. Tôi có thể giúp bạn xem lịch học, tình hình điểm danh, tài liệu và nhiều hơn nữa. Hôm nay tôi có thể giúp gì cho bạn?',
+    suggestions: {
+      schedule: 'Cho tôi xem lịch học hôm nay',
+      attendance: 'Tình hình điểm danh môn Toán của tôi thế nào?',
+      documents: 'Có tài liệu mới môn Vật lý không?',
+      help: 'Bạn còn có thể làm gì khác?',
+    },
   },
 };
 
