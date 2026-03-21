@@ -588,6 +588,7 @@ const vi: Translations = {
     askBtn: 'Gửi câu hỏi',
     sendBtn: 'Gửi',
     sending: 'Đang gửi...',
+    newQuestionTitle: 'Câu hỏi mới',
     revokeAction: 'Thu hồi câu hỏi',
     revokeSuccess: 'Đã thu hồi câu hỏi',
     revokeError: 'Không thể thu hồi câu hỏi. Thử lại sau.',

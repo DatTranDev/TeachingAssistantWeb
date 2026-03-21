@@ -529,6 +529,7 @@ export interface Translations {
     askBtn: string;
     sendBtn: string;
     sending: string;
+    newQuestionTitle: string;
     revokeAction: string;
     revokeSuccess: string;
     revokeError: string;
@@ -1473,6 +1474,7 @@ const en: Translations = {
     askBtn: 'Post question',
     sendBtn: 'Send',
     sending: 'Sending...',
+    newQuestionTitle: 'New question',
     revokeAction: 'Revoke question',
     revokeSuccess: 'Question recalled',
     revokeError: 'Cannot revoke question. Try again later.',

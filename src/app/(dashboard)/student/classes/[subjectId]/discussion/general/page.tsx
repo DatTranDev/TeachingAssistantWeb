@@ -75,7 +75,6 @@ export default function StudentDiscussionPage() {
   const timeAgo = (dateStr: string): string => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-  const { t, locale } = useT();
     if (mins < 60) return t('timeAgo.minutesAgo', { count: String(mins) });
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return t('timeAgo.hoursAgo', { count: String(hrs) });
@@ -157,19 +156,18 @@ export default function StudentDiscussionPage() {
         socket.emit('sendMessageToSubject', {
           subjectID: subjectId,
           message: newQuestion,
-          dataMsg: { title: 'Câu hỏi mới', body: content.trim(), subjectId },
-        });
-      }
-      setContent('');
           dataMsg: {
-            title: locale === 'vi' ? 'Cau hoi moi' : 'New question',
+            title: t('discussion.newQuestionTitle'),
             body: content.trim(),
             subjectId,
           },
+        });
+      }
+      setContent('');
     },
     onError: () => toast.error(t('common.generic')),
   });
-      toast.success(t('discussion.posting'));
+
   const revokeMutation = useMutation({
     mutationFn: (id: string) => questionsApi.update(id, { isResolved: true }),
     onMutate: async (id) => {
