@@ -263,6 +263,42 @@ export interface Question {
   updatedAt?: string;
 }
 
+// ─── Timetable Notes ─────────────────────────────────────────────────────────
+
+export interface ChecklistItem {
+  _id?: string;
+  text: string;
+  done: boolean;
+}
+
+export interface TimetableNote {
+  _id: string;
+  userId: string;
+  title: string;
+  date: string;       // YYYY-MM-DD
+  time: string;       // HH:mm
+  duration: number;   // minutes
+  location: string;
+  doingWith: string;
+  checklist: ChecklistItem[];
+  done: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ─── Managed Files ───────────────────────────────────────────────────────────
+
+export interface UserFile {
+  _id: string;
+  userId: string;
+  name: string;
+  size: number;
+  url: string;
+  type: string;
+  firebasePath: string;
+  createdAt: string;
+}
+
 // ─── API Response Wrappers ───────────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {

@@ -396,7 +396,8 @@ function DefaultGroupsTab({ subjectId }: { subjectId: string }) {
 
 function RandomGroupsTab({ subjectId }: { subjectId: string }) {
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   const [selectedSession, setSelectedSession] = useState<string>('');
   const [mode, setMode] = useState<'groupCount' | 'memberCount'>('groupCount');
   const [groupCount, setGroupCount] = useState(5);
@@ -443,7 +444,7 @@ function RandomGroupsTab({ subjectId }: { subjectId: string }) {
   const handleGenerate = () => {
     const n = getNumberToGenerate();
     if (n < 2) {
-      toast.error('Số lượng tối thiểu là 2');
+      toast.error(t('groups.minCountError'));
       return;
     }
     generateMutation.mutate(n);
@@ -489,7 +490,7 @@ function RandomGroupsTab({ subjectId }: { subjectId: string }) {
               <SelectItem key={s._id} value={s._id}>
                 {t('groups.sessionItem', {
                   n: String(s.sessionNumber),
-                  date: new Date(s.date).toLocaleDateString('vi-VN'),
+                  date: new Date(s.date).toLocaleDateString(localeTag),
                 })}
               </SelectItem>
             ))}

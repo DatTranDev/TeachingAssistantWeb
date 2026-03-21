@@ -75,7 +75,7 @@ export default function StudentDiscussionPage() {
   const timeAgo = (dateStr: string): string => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return t('timeAgo.justNow');
+  const { t, locale } = useT();
     if (mins < 60) return t('timeAgo.minutesAgo', { count: String(mins) });
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return t('timeAgo.hoursAgo', { count: String(hrs) });
@@ -161,11 +161,15 @@ export default function StudentDiscussionPage() {
         });
       }
       setContent('');
-      toast.success('Đã đăng câu hỏi');
+          dataMsg: {
+            title: locale === 'vi' ? 'Cau hoi moi' : 'New question',
+            body: content.trim(),
+            subjectId,
+          },
     },
-    onError: () => toast.error('Không thể đăng câu hỏi. Thử lại sau.'),
+    onError: () => toast.error(t('common.generic')),
   });
-
+      toast.success(t('discussion.posting'));
   const revokeMutation = useMutation({
     mutationFn: (id: string) => questionsApi.update(id, { isResolved: true }),
     onMutate: async (id) => {

@@ -27,7 +27,8 @@ export default function TeacherChannelPage() {
   const { subjectId } = useSubject();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const defaultAnnouncementTitle = locale === 'vi' ? 'Thong bao' : 'Announcement';
 
   const timeAgo = (dateStr: string): string => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -73,7 +74,7 @@ export default function TeacherChannelPage() {
   useSocketEvent('receiveChannelMessage', handleReceiveChannelMessage);
 
   const createChannelMutation = useMutation({
-    mutationFn: () => channelsApi.create({ subjectId, name: 'Thông báo' }),
+    mutationFn: () => channelsApi.create({ subjectId, name: defaultAnnouncementTitle }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.channels.bySubject(subjectId) });
     },
@@ -85,7 +86,7 @@ export default function TeacherChannelPage() {
       postsApi.create({
         channelId: mainChannel!._id,
         creator: user!._id,
-        title: title.trim() || 'Thông báo',
+        title: title.trim() || defaultAnnouncementTitle,
         content: content.trim(),
       }),
     onSuccess: (newPost) => {
@@ -245,9 +246,12 @@ export default function TeacherChannelPage() {
                     </Button>
                   )}
                 </div>
-                {post.title && post.title !== 'Thông báo' && (
-                  <h3 className="font-semibold text-base">{post.title}</h3>
-                )}
+                {post.title &&
+                  post.title !== 'Thong bao' &&
+                  post.title !== 'Thông báo' &&
+                  post.title !== 'Announcement' && (
+                    <h3 className="font-semibold text-base">{post.title}</h3>
+                  )}
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
               </div>
             );

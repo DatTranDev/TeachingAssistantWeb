@@ -60,4 +60,12 @@ export const queryKeys = {
   questions: {
     bySubject: (subjectId: string) => ['questions', 'bySubject', subjectId] as const,
   },
+  notes: {
+    byUser: (userId: string) => ['notes', 'byUser', userId] as const,
+  },
+  billing: {
+    status: (userId: string) => ['billing', 'status', userId] as const,
+    paymentMethods: (userId: string) => ['billing', 'payment-methods', userId] as const,
+    invoices: (userId: string) => ['billing', 'invoices', userId] as const,
+  },
 } as const;

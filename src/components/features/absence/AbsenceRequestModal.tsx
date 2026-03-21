@@ -33,13 +33,14 @@ export function AbsenceRequestModal({
   cAttend,
   onSuccess,
 }: AbsenceRequestModalProps) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [reason, setReason] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
-  const sessionDate = new Date(cAttend.date).toLocaleDateString('vi-VN', {
+  const sessionDate = new Date(cAttend.date).toLocaleDateString(localeTag, {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',

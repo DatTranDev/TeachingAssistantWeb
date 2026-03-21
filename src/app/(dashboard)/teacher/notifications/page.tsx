@@ -57,7 +57,8 @@ type Filter = 'all' | 'unread';
 export default function TeacherNotificationsPage() {
   const [filter, setFilter] = useState<Filter>('all');
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
   const formatTime = (iso?: string) => {
     if (!iso) return '';
@@ -67,7 +68,7 @@ export default function TeacherNotificationsPage() {
     if (diff < 60) return t('timeAgo.justNow');
     if (diff < 3600) return t('timeAgo.minutesAgo', { count: String(Math.floor(diff / 60)) });
     if (diff < 86400) return t('timeAgo.hoursAgo', { count: String(Math.floor(diff / 3600)) });
-    return d.toLocaleDateString('vi-VN');
+    return d.toLocaleDateString(localeTag);
   };
 
   const { data: recipients = [], isLoading } = useQuery({

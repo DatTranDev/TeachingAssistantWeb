@@ -38,12 +38,13 @@ export function OverrideModal({
   currentStatus,
   onSuccess,
 }: OverrideModalProps) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [status, setStatus] = useState<AttendanceStatus>(currentStatus ?? 'KP');
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   const STATUS_OPTIONS: { value: AttendanceStatus; label: string }[] = [
-    { value: 'CM', label: 'CM — Có mặt' },
-    { value: 'KP', label: 'KP — Vắng không phép' },
-    { value: 'CP', label: 'CP — Vắng có phép' },
+    { value: 'CM', label: `CM — ${t('studentAttendance.statusPresent')}` },
+    { value: 'KP', label: `KP — ${t('studentAttendance.statusAbsent')}` },
+    { value: 'CP', label: `CP — ${t('studentAttendance.statusExcused')}` },
   ];
 
   const mutation = useMutation({
@@ -69,7 +70,7 @@ export function OverrideModal({
         <DialogHeader>
           <DialogTitle>{t('attendance.override.title')}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {student.name} — {new Date(sessionDate).toLocaleDateString('vi-VN')}
+            {student.name} — {new Date(sessionDate).toLocaleDateString(localeTag)}
           </p>
         </DialogHeader>
 

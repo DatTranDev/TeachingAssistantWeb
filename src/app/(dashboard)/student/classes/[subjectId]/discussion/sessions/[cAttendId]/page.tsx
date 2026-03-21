@@ -31,7 +31,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import type { Discussion, Reaction, User } from '@/types/domain';
@@ -72,7 +78,7 @@ function isImageUrl(url: string): boolean {
   );
 }
 
-function DiscussionImage({ src }: { src: string }) {
+function DiscussionImage({ src, attachmentLabel }: { src: string; attachmentLabel: string }) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
   return (
     <div className="mt-1">
@@ -85,7 +91,7 @@ function DiscussionImage({ src }: { src: string }) {
           className="inline-flex items-center gap-2 rounded-lg border px-4 py-3 text-sm text-primary hover:bg-neutral-100 dark:hover:bg-slate-700 transition-colors"
         >
           <Paperclip className="h-4 w-4 shrink-0" />
-          <span className="truncate max-w-xs">Xem tệp đính kèm</span>
+          <span className="truncate max-w-xs">{attachmentLabel}</span>
         </a>
       ) : (
         <img
@@ -115,7 +121,8 @@ export default function StudentSessionDiscussionPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { socket } = useSocket();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
   const timeAgo = (dateStr: string): string => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -272,15 +279,19 @@ export default function StudentSessionDiscussionPage() {
       socket?.emit('sendMessageToSubject', {
         subjectID: cAttendId,
         message: newPost,
-        dataMsg: { title: 'Bài viết mới', body: newContent.trim(), subjectId: cAttendId },
+        dataMsg: {
+          title: locale === 'vi' ? 'Bai viet moi' : 'New post',
+          body: newContent.trim(),
+          subjectId: cAttendId,
+        },
       });
       setShowCreateDialog(false);
       setNewTitle('');
       setNewContent('');
       setNewImages([]);
-      toast.success('Đã đăng bài thành công');
+      toast.success(t('channel.postSuccess'));
     },
-    onError: () => toast.error('Không thể đăng bài. Thử lại sau.'),
+    onError: () => toast.error(t('channel.postError')),
   });
 
   const replyMutation = useMutation({
@@ -299,13 +310,17 @@ export default function StudentSessionDiscussionPage() {
       socket?.emit('sendMessageToSubject', {
         subjectID: cAttendId,
         message: newReply,
-        dataMsg: { title: 'Bình luận mới', body: replyContent.trim(), subjectId: cAttendId },
+        dataMsg: {
+          title: locale === 'vi' ? 'Binh luan moi' : 'New comment',
+          body: replyContent.trim(),
+          subjectId: cAttendId,
+        },
       });
       setReplyTarget(null);
       setReplyContent('');
-      toast.success('Đã gửi bình luận');
+      toast.success(t('common.done'));
     },
-    onError: () => toast.error('Không thể gửi bình luận. Thử lại sau.'),
+    onError: () => toast.error(t('common.generic')),
   });
 
   const voteMutation = useMutation({
@@ -324,10 +339,16 @@ export default function StudentSessionDiscussionPage() {
             let downvotes = [...(d.downvotes ?? [])];
             if (type === 'upvote') {
               if (upvotes.includes(uid)) upvotes = upvotes.filter((x) => x !== uid);
-              else { upvotes.push(uid); downvotes = downvotes.filter((x) => x !== uid); }
+              else {
+                upvotes.push(uid);
+                downvotes = downvotes.filter((x) => x !== uid);
+              }
             } else {
               if (downvotes.includes(uid)) downvotes = downvotes.filter((x) => x !== uid);
-              else { downvotes.push(uid); upvotes = upvotes.filter((x) => x !== uid); }
+              else {
+                downvotes.push(uid);
+                upvotes = upvotes.filter((x) => x !== uid);
+              }
             }
             return { ...d, upvotes, downvotes };
           }) ?? []
@@ -337,10 +358,9 @@ export default function StudentSessionDiscussionPage() {
     onError: (_err, _vars, ctx) => {
       if (ctx?.snapshot)
         queryClient.setQueryData(queryKeys.discussions.byCAttend(cAttendId), ctx.snapshot);
-      toast.error('Không thể cập nhật vote. Thử lại sau.');
+      toast.error(t('common.generic'));
     },
   });
-
 
   const addReactionMutation = useMutation({
     mutationFn: ({ discussionId, type }: { discussionId: string; type: 1 | 2 | 3 | 4 | 5 }) =>
@@ -349,7 +369,7 @@ export default function StudentSessionDiscussionPage() {
       invalidateDiscussions();
       setOpenReactionFor(null);
     },
-    onError: () => toast.error('Không thể thêm cảm xúc. Thử lại sau.'),
+    onError: () => toast.error(t('common.generic')),
   });
 
   const updateReactionMutation = useMutation({
@@ -359,14 +379,14 @@ export default function StudentSessionDiscussionPage() {
       invalidateDiscussions();
       setOpenReactionFor(null);
     },
-    onError: () => toast.error('Không thể cập nhật cảm xúc. Thử lại sau.'),
+    onError: () => toast.error(t('common.generic')),
   });
 
   // ─── Image upload helpers ────────────────────────────────────────────────────
   const handleImageFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (newImages.length >= 3) {
-      toast.error('Tối đa 3 ảnh');
+      toast.error(t('common.generic'));
       return;
     }
     setUploadingImages(true);
@@ -375,7 +395,7 @@ export default function StudentSessionDiscussionPage() {
       const urls = await uploadApi.uploadImages(toUpload);
       setNewImages((prev) => [...prev, ...urls]);
     } catch {
-      toast.error('Tải ảnh thất bại. Thử lại sau.');
+      toast.error(t('common.generic'));
     } finally {
       setUploadingImages(false);
     }
@@ -385,8 +405,7 @@ export default function StudentSessionDiscussionPage() {
   const renderAuthor = (d: Discussion, isOwn: boolean) => {
     const creator = getCreator(d.creator);
     const isTeacher = creator?.role === 'teacher';
-    const creatorId =
-      creator?._id ?? (typeof d.creator === 'string' ? d.creator : '');
+    const creatorId = creator?._id ?? (typeof d.creator === 'string' ? d.creator : '');
     const anonNum = anonymousMap.get(creatorId);
 
     return (
@@ -451,7 +470,11 @@ export default function StudentSessionDiscussionPage() {
               type="button"
               className="text-xs text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 transition-colors"
             >
-              {myReaction ? REACTION_EMOJIS[myReaction.type] : '+ Cảm xúc'}
+              {myReaction
+                ? REACTION_EMOJIS[myReaction.type]
+                : locale === 'vi'
+                  ? '+ Cam xuc'
+                  : '+ Reactions'}
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2 bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-lg">
@@ -480,8 +503,7 @@ export default function StudentSessionDiscussionPage() {
   const renderPost = (d: Discussion, isReply = false) => {
     const creator = getCreator(d.creator);
     const isOwn =
-      creator?._id === user?._id ||
-      (typeof d.creator === 'string' && d.creator === user?._id);
+      creator?._id === user?._id || (typeof d.creator === 'string' && d.creator === user?._id);
     const replies = isReply ? [] : repliesFor(d._id);
     const isExpanded = expandedReplies.has(d._id);
 
@@ -505,16 +527,18 @@ export default function StudentSessionDiscussionPage() {
 
         {/* Content */}
         <>
-          {!isReply && d.title && (
-            <p className="font-semibold text-sm leading-snug">{d.title}</p>
-          )}
+          {!isReply && d.title && <p className="font-semibold text-sm leading-snug">{d.title}</p>}
           {isImageUrl(d.content) ? (
-            <DiscussionImage src={d.content} />
+            <DiscussionImage src={d.content} attachmentLabel={t('studentAttendance.viewFile')} />
           ) : (
             <p className="text-sm leading-relaxed">{d.content}</p>
           )}
           {(d.images ?? []).map((img) => (
-            <DiscussionImage key={img} src={img} />
+            <DiscussionImage
+              key={img}
+              src={img}
+              attachmentLabel={t('studentAttendance.viewFile')}
+            />
           ))}
         </>
 
@@ -570,14 +594,19 @@ export default function StudentSessionDiscussionPage() {
                   onClick={() =>
                     setExpandedReplies((prev) => {
                       const next = new Set(prev);
-                      if (next.has(d._id)) { next.delete(d._id); } else { next.add(d._id); }
+                      if (next.has(d._id)) {
+                        next.delete(d._id);
+                      } else {
+                        next.add(d._id);
+                      }
                       return next;
                     })
                   }
                   className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                 >
                   <MessageSquare className="h-3.5 w-3.5" />
-                  {t('discussion.commentCount', { n: String(replies.length) })} {isExpanded ? '▲' : '▼'}
+                  {t('discussion.commentCount', { n: String(replies.length) })}{' '}
+                  {isExpanded ? '▲' : '▼'}
                 </button>
               )}
               <button
@@ -593,9 +622,7 @@ export default function StudentSessionDiscussionPage() {
             </div>
 
             {isExpanded && replies.length > 0 && (
-              <div className="space-y-2">
-                {replies.map((r) => renderPost(r, true))}
-              </div>
+              <div className="space-y-2">{replies.map((r) => renderPost(r, true))}</div>
             )}
 
             {replyTarget === d._id && (
@@ -630,8 +657,8 @@ export default function StudentSessionDiscussionPage() {
 
   // ─── Page ────────────────────────────────────────────────────────────────────
   const sessionLabel = session
-    ? `Buổi ${session.sessionNumber} — ${new Date(session.date).toLocaleDateString('vi-VN')}`
-    : 'Buổi học';
+    ? `${t('discussionHub.sessionN', { n: String(session.sessionNumber) })} — ${new Date(session.date).toLocaleDateString(localeTag)}`
+    : t('discussion.sessionSubtitle');
 
   return (
     <div className="space-y-4">
@@ -675,7 +702,9 @@ export default function StudentSessionDiscussionPage() {
       {/* List */}
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-40 w-full rounded-xl" />
+          ))}
         </div>
       ) : mainPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800/50 py-14 gap-3 text-center">
@@ -698,7 +727,11 @@ export default function StudentSessionDiscussionPage() {
         open={showCreateDialog}
         onOpenChange={(open) => {
           setShowCreateDialog(open);
-          if (!open) { setNewTitle(''); setNewContent(''); setNewImages([]); }
+          if (!open) {
+            setNewTitle('');
+            setNewContent('');
+            setNewImages([]);
+          }
         }}
       >
         <DialogContent className="max-w-lg">
@@ -708,7 +741,8 @@ export default function StudentSessionDiscussionPage() {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                {t('discussion.postTitleLabel')} <span className="text-muted-foreground/70">{t('discussion.titleOptional')}</span>
+                {t('discussion.postTitleLabel')}{' '}
+                <span className="text-muted-foreground/70">{t('discussion.titleOptional')}</span>
               </label>
               <Input
                 value={newTitle}
@@ -716,7 +750,9 @@ export default function StudentSessionDiscussionPage() {
                 placeholder={t('discussion.postTitlePlaceholder')}
                 maxLength={100}
               />
-              <p className="text-xs text-muted-foreground text-right mt-0.5">{newTitle.length}/100</p>
+              <p className="text-xs text-muted-foreground text-right mt-0.5">
+                {newTitle.length}/100
+              </p>
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
@@ -785,7 +821,12 @@ export default function StudentSessionDiscussionPage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => { setShowCreateDialog(false); setNewTitle(''); setNewContent(''); setNewImages([]); }}
+              onClick={() => {
+                setShowCreateDialog(false);
+                setNewTitle('');
+                setNewContent('');
+                setNewImages([]);
+              }}
             >
               {t('common.cancel')}
             </Button>

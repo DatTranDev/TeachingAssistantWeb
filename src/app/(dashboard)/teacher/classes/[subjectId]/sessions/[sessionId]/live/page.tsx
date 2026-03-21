@@ -20,6 +20,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getCAttendStatus } from '@/components/features/sessions/SessionStatusBadge';
 import { cn } from '@/lib/utils';
+import { useT } from '@/hooks/use-t';
 
 interface StudentTile {
   _id: string;
@@ -52,6 +53,7 @@ export default function LiveAttendancePage({ params }: PageProps) {
   const { user } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useT();
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [tiles, setTiles] = useState<StudentTile[]>([]);
 
@@ -119,7 +121,7 @@ export default function LiveAttendancePage({ params }: PageProps) {
     mutationFn: () => cAttendApi.deactivate(sessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cAttend.byId(sessionId) });
-      toast.success('Đã kết thúc điểm danh');
+      toast.success(t('sessions.live.deactivateSuccess'));
       router.replace(`/teacher/classes/${subjectId}/sessions/${sessionId}`);
     },
     onError: (error: { message?: string }) => toast.error(error.message ?? 'Lỗi'),
@@ -129,7 +131,7 @@ export default function LiveAttendancePage({ params }: PageProps) {
     mutationFn: () => cAttendApi.close(sessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cAttend.byId(sessionId) });
-      toast.success('Buổi học đã hoàn thành');
+      toast.success(t('sessions.live.closeSuccess'));
       setCloseDialogOpen(false);
       router.replace(`/teacher/classes/${subjectId}/sessions`);
     },
@@ -162,12 +164,14 @@ export default function LiveAttendancePage({ params }: PageProps) {
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
+            {t('sessions.live.back')}
           </Link>
           {status === 'live' && (
             <div className="flex items-center gap-1.5">
               <Radio className="h-4 w-4 text-primary animate-pulse" />
-              <span className="text-sm font-medium text-primary">Đang điểm danh</span>
+              <span className="text-sm font-medium text-primary">
+                {t('sessions.live.recording')}
+              </span>
               <span className="text-sm text-muted-foreground">· {elapsed}</span>
             </div>
           )}
@@ -181,11 +185,11 @@ export default function LiveAttendancePage({ params }: PageProps) {
               disabled={deactivateMutation.isPending}
             >
               {deactivateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Kết thúc điểm danh
+              {t('sessions.live.endAttendanceBtn')}
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={() => setCloseDialogOpen(true)}>
-            Hoàn thành buổi học
+            {t('sessions.live.completeBtn')}
           </Button>
         </div>
       </div>
@@ -193,9 +197,9 @@ export default function LiveAttendancePage({ params }: PageProps) {
       {/* Progress bar */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Điểm danh</span>
+          <span className="text-muted-foreground">{t('sessions.live.attendanceLabel')}</span>
           <span className="font-medium">
-            {checkedInCount} / {totalCount} sinh viên · {pct}%
+            {checkedInCount} / {totalCount}
           </span>
         </div>
         <div className="h-2 w-full rounded-full bg-neutral-200 overflow-hidden">
@@ -240,17 +244,17 @@ export default function LiveAttendancePage({ params }: PageProps) {
 
       {tiles.length === 0 && (
         <p className="text-center py-12 text-sm text-muted-foreground">
-          Chưa có sinh viên trong lớp
+          {t('sessions.live.noStudents')}
         </p>
       )}
 
       <ConfirmDialog
         open={closeDialogOpen}
         onOpenChange={setCloseDialogOpen}
-        title="Hoàn thành buổi học?"
-        description="Buổi học sẽ được đánh dấu hoàn thành. Sinh viên chưa điểm danh sẽ bị ghi vắng."
-        confirmLabel="Hoàn thành"
-        cancelLabel="Hủy"
+        title={t('sessions.live.completeDialog.title')}
+        description={t('sessions.live.completeDialog.description')}
+        confirmLabel={t('sessions.live.completeDialog.confirmBtn')}
+        cancelLabel={t('sessions.live.completeDialog.cancelBtn')}
         onConfirm={() => closeMutation.mutate()}
         isLoading={closeMutation.isPending}
       />

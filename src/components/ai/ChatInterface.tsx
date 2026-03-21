@@ -9,48 +9,78 @@ import { useT } from '@/hooks/use-t';
 function formatText(text: string): React.ReactNode[] {
   const lines = text.split('\n');
   return lines.map((line, i) => {
-    if (line.startsWith('# ')) return <h2 key={i} className="text-base font-bold mt-2 mb-1">{line.slice(2)}</h2>;
-    if (line.startsWith('## ')) return <h3 key={i} className="text-sm font-semibold mt-2 mb-1">{line.slice(3)}</h3>;
+    if (line.startsWith('# '))
+      return (
+        <h2 key={i} className="text-base font-bold mt-2 mb-1">
+          {line.slice(2)}
+        </h2>
+      );
+    if (line.startsWith('## '))
+      return (
+        <h3 key={i} className="text-sm font-semibold mt-2 mb-1">
+          {line.slice(3)}
+        </h3>
+      );
     if (line.startsWith('- ') || line.startsWith('* ')) {
-      return <li key={i} className="ml-4 list-disc text-sm">{line.slice(2)}</li>;
+      return (
+        <li key={i} className="ml-4 list-disc text-sm">
+          {line.slice(2)}
+        </li>
+      );
     }
     if (line.trim() === '') return <br key={i} />;
-    return <p key={i} className="text-sm leading-relaxed">{line}</p>;
+    return (
+      <p key={i} className="text-sm leading-relaxed">
+        {line}
+      </p>
+    );
   });
 }
 
 // ── Message bubble ────────────────────────────────────────────────────────────
-function MessageBubble({ msg }: { msg: ChatMessage }) {
+function MessageBubble({ msg, locale }: { msg: ChatMessage; locale: 'en' | 'vi' }) {
   const isUser = msg.role === 'user';
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   return (
     <div className={`flex items-end gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {/* Avatar */}
-      <div className={`
+      <div
+        className={`
         flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
-        ${isUser
-          ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-          : 'bg-gradient-to-br from-violet-500 to-purple-600'}
-      `}>
-        {isUser
-          ? <User size={15} className="text-white" />
-          : <Bot size={15} className="text-white" />
+        ${
+          isUser
+            ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+            : 'bg-gradient-to-br from-violet-500 to-purple-600'
         }
+      `}
+      >
+        {isUser ? (
+          <User size={15} className="text-white" />
+        ) : (
+          <Bot size={15} className="text-white" />
+        )}
       </div>
 
       {/* Bubble */}
-      <div className={`
+      <div
+        className={`
         max-w-[78%] rounded-2xl px-4 py-3 shadow-sm
-        ${isUser
-          ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-br-md'
-          : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md'
+        ${
+          isUser
+            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-br-md'
+            : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md'
         }
-      `}>
-        {isUser
-          ? <p className="text-sm leading-relaxed">{msg.content}</p>
-          : <div className="text-gray-800">{formatText(msg.content)}</div>
-        }
-        <p className={`text-[10px] mt-1.5 ${isUser ? 'text-blue-100 text-right' : 'text-gray-400'}`}>
-          {msg.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+      `}
+      >
+        {isUser ? (
+          <p className="text-sm leading-relaxed">{msg.content}</p>
+        ) : (
+          <div className="text-gray-800">{formatText(msg.content)}</div>
+        )}
+        <p
+          className={`text-[10px] mt-1.5 ${isUser ? 'text-blue-100 text-right' : 'text-gray-400'}`}
+        >
+          {msg.timestamp.toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
     </div>
@@ -66,7 +96,7 @@ function TypingIndicator() {
       </div>
       <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
         <div className="flex gap-1 items-center h-4">
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <span
               key={i}
               className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"
@@ -90,18 +120,21 @@ export default function ChatInterface() {
 
   // Localized initial state derived from i18n
   const welcomeMessage = t('aiAssistant.welcome');
-  const suggestions = useMemo(() => [
-    t('aiAssistant.suggestions.schedule'),
-    t('aiAssistant.suggestions.attendance'),
-    t('aiAssistant.suggestions.documents'),
-    t('aiAssistant.suggestions.help'),
-  ], [t]);
+  const suggestions = useMemo(
+    () => [
+      t('aiAssistant.suggestions.schedule'),
+      t('aiAssistant.suggestions.attendance'),
+      t('aiAssistant.suggestions.documents'),
+      t('aiAssistant.suggestions.help'),
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const loadHistory = async () => {
       try {
         const { history } = await aiApi.getHistory(locale);
-        
+
         if (history.length > 0) {
           // Reverse history because backend returns it sorted by timestamp DESC
           setMessages(history.reverse());
@@ -112,7 +145,7 @@ export default function ChatInterface() {
               role: 'assistant',
               content: welcomeMessage,
               timestamp: new Date(),
-            }
+            },
           ]);
         }
       } catch (err) {
@@ -121,45 +154,52 @@ export default function ChatInterface() {
         setMessages([
           {
             role: 'assistant',
-            content: `${welcomeMessage} (Error loading history)`,
+            content: `${welcomeMessage} ${locale === 'vi' ? '(Loi tai lich su)' : '(Error loading history)'}`,
             timestamp: new Date(),
-          }
+          },
         ]);
       }
     };
     loadHistory();
-  }, [welcomeMessage]);
+  }, [welcomeMessage, locale]);
 
   // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const sendMessage = useCallback(async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || isLoading) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isLoading) return;
 
-    const userMsg: ChatMessage = { role: 'user', content: trimmed, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsLoading(true);
+      const userMsg: ChatMessage = { role: 'user', content: trimmed, timestamp: new Date() };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput('');
+      setIsLoading(true);
 
-    try {
-      const reply = await aiApi.chat(trimmed, locale);
-      const assistantMsg: ChatMessage = { role: 'assistant', content: reply, timestamp: new Date() };
-      setMessages(prev => [...prev, assistantMsg]);
-    } catch {
-      const errMsg: ChatMessage = {
-        role: 'assistant',
-        content: t('auth.errors.network'),
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errMsg]);
-    } finally {
-      setIsLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isLoading]);
+      try {
+        const reply = await aiApi.chat(trimmed, locale);
+        const assistantMsg: ChatMessage = {
+          role: 'assistant',
+          content: reply,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch {
+        const errMsg: ChatMessage = {
+          role: 'assistant',
+          content: t('auth.errors.network'),
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errMsg]);
+      } finally {
+        setIsLoading(false);
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
+    },
+    [isLoading, locale, t]
+  );
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,13 +213,14 @@ export default function ChatInterface() {
     }
   };
 
-
   const clearChat = () => {
-    setMessages([{
-      role: 'assistant',
-      content: welcomeMessage || 'Cuộc trò chuyện đã được xóa. Tôi có thể giúp gì cho bạn?',
-      timestamp: new Date()
-    }]);
+    setMessages([
+      {
+        role: 'assistant',
+        content: welcomeMessage,
+        timestamp: new Date(),
+      },
+    ]);
   };
 
   return (
@@ -193,14 +234,18 @@ export default function ChatInterface() {
               <Sparkles size={18} className="text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-neutral-900 dark:text-slate-100 text-sm">{t('nav.aiAssistant')}</h1>
-              <p className="text-xs text-neutral-500 dark:text-slate-400">Powered by Gemini</p>
+              <h1 className="font-semibold text-neutral-900 dark:text-slate-100 text-sm">
+                {t('nav.aiAssistant')}
+              </h1>
+              <p className="text-xs text-neutral-500 dark:text-slate-400">
+                {locale === 'vi' ? 'Duoc ho tro boi Gemini' : 'Powered by Gemini'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={clearChat}
-              title="Xóa cuộc trò chuyện"
+              title={t('common.delete')}
               className="p-1.5 rounded-lg text-neutral-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
             >
               <RotateCcw size={15} />
@@ -211,7 +256,7 @@ export default function ChatInterface() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
           {messages.map((msg, i) => (
-            <MessageBubble key={i} msg={msg} />
+            <MessageBubble key={i} msg={msg} locale={locale} />
           ))}
           {isLoading && <TypingIndicator />}
           <div ref={bottomRef} />
@@ -234,7 +279,7 @@ export default function ChatInterface() {
 
         {/* Input */}
         <div className="bg-white dark:bg-slate-900 border-t border-border dark:border-slate-700/60 px-4 py-3 shrink-0">
-          <form 
+          <form
             onSubmit={onSubmit}
             className="flex items-end gap-2 bg-neutral-50 dark:bg-slate-800 rounded-2xl border border-border dark:border-slate-700 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100 dark:focus-within:ring-violet-500/20 transition-all px-3 py-2"
           >
@@ -257,14 +302,17 @@ export default function ChatInterface() {
               disabled={!input.trim() || isLoading}
               className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed mb-0.5 cursor-pointer shadow-sm"
             >
-              {isLoading
-                ? <Loader2 size={16} className="animate-spin" />
-                : <Send size={16} className="-ml-0.5" />
-              }
+              {isLoading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} className="-ml-0.5" />
+              )}
             </button>
           </form>
           <p className="text-center text-[10px] text-neutral-400 dark:text-slate-500 mt-2">
-            AI can make mistakes. Check important info.
+            {locale === 'vi'
+              ? 'AI co the mac loi. Hay kiem tra thong tin quan trong.'
+              : 'AI can make mistakes. Check important info.'}
           </p>
         </div>
       </div>

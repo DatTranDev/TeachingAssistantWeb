@@ -53,13 +53,14 @@ function getFileConfig(name: string) {
 
 function SessionDocSection({ session, userId }: { session: CAttend; userId: string }) {
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const wd = d.getDay();
     const idx = wd === 0 ? 7 : wd;
     const day = idx >= 1 && idx <= 7 ? t(`days.short.d${idx}` as TKey) : '';
-    return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+    return `${day}, ${d.toLocaleDateString(localeTag)}`;
   };
   const [expanded, setExpanded] = useState(true);
   const [uploading, setUploading] = useState(false);

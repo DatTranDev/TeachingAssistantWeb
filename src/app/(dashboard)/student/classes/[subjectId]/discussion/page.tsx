@@ -18,13 +18,14 @@ function getCAttendId(cAttendId: Group['cAttendId']): string {
   return cAttendId._id;
 }
 
-function formatSessionDate(input: string): string {
-  return new Date(input).toLocaleDateString('vi-VN');
+function formatSessionDate(input: string, localeTag: string): string {
+  return new Date(input).toLocaleDateString(localeTag);
 }
 
 export default function StudentDiscussionHubPage() {
   const { subjectId } = useSubject();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
   const { data: cAttends = [], isLoading: loadingSessions } = useQuery({
     queryKey: queryKeys.cAttend.bySubject(subjectId),
@@ -146,7 +147,9 @@ export default function StudentDiscussionHubPage() {
                   <p className="font-medium">
                     {t('discussionHub.sessionN', { n: String(session.sessionNumber) })}
                   </p>
-                  <p className="text-xs text-muted-foreground">{formatSessionDate(session.date)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatSessionDate(session.date, localeTag)}
+                  </p>
                 </div>
                 <Link href={`/student/classes/${subjectId}/discussion/sessions/${session._id}`}>
                   <Button size="sm">{t('discussionHub.enterDiscussion')}</Button>
@@ -184,7 +187,7 @@ export default function StudentDiscussionHubPage() {
                       {cAttend
                         ? t('discussionHub.sessionRef', {
                             n: String(cAttend.sessionNumber),
-                            date: formatSessionDate(cAttend.date),
+                            date: formatSessionDate(cAttend.date, localeTag),
                           })
                         : t('discussionHub.noLinkedSession')}
                     </p>

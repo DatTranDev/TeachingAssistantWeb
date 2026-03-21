@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { locales } from '@/lib/i18n';
 import type { Translations } from '@/lib/i18n/en';
@@ -35,20 +36,24 @@ export type TKey = StringLeaves<Translations>;
  * const { t } = useT();
  * t('nav.classes')                        // "Classes"
  * t('student.classes.subtitle', { count: 3 })  // "3 classes"
+ * t('student.classes.subtitle', { count: 3 })  // "3 classes"
  */
 export function useT() {
   const { locale } = useLanguage();
   const dict = locales[locale];
 
-  function t(key: TKey, vars?: Record<string, string | number>): string {
-    let value = resolvePath(dict, key as string);
-    if (vars) {
-      Object.entries(vars).forEach(([k, v]) => {
-        value = value.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v));
-      });
-    }
-    return value;
-  }
+  const t = useCallback(
+    (key: TKey, vars?: Record<string, string | number>): string => {
+      let value = resolvePath(dict, key as string);
+      if (vars) {
+        Object.entries(vars).forEach(([k, v]) => {
+          value = value.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v));
+        });
+      }
+      return value;
+    },
+    [dict],
+  );
 
   return { t, locale };
 }

@@ -30,16 +30,17 @@ function getStudentName(studentId: AbsenceRequest['studentId']): string {
 }
 
 export function AbsenceRejectModal({ open, onOpenChange, request, onConfirm }: Props) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const wd = d.getDay();
     const idx = wd === 0 ? 7 : wd;
     const day = idx >= 1 && idx <= 7 ? t(`days.short.d${idx}` as TKey) : '';
-    return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+    return `${day}, ${d.toLocaleDateString(localeTag)}`;
   };
 
   const handleConfirm = async () => {

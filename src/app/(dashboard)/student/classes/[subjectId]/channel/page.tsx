@@ -22,6 +22,7 @@ export default function StudentChannelPage() {
   const { subjectId } = useSubject();
   const { user } = useAuth();
   const { t, locale } = useT();
+  const defaultAnnouncementTitle = locale === 'vi' ? 'Thong bao' : 'Announcement';
   const queryClient = useQueryClient();
 
   const timeAgo = (dateStr: string): string => {
@@ -108,9 +109,12 @@ export default function StudentChannelPage() {
                 </p>
               </div>
             </div>
-            {post.title && post.title !== 'Thông báo' && (
-              <h3 className="font-semibold text-base">{post.title}</h3>
-            )}
+            {post.title &&
+              post.title !== 'Thong bao' &&
+              post.title !== 'Thông báo' &&
+              post.title !== 'Announcement' && (
+                <h3 className="font-semibold text-base">{post.title}</h3>
+              )}
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
           </div>
         );

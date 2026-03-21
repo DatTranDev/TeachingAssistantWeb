@@ -39,16 +39,6 @@ import type { Discussion, User } from '@/types/domain';
 
 // ─── pure helpers ────────────────────────────────────────────────────────────
 
-function timeAgoFn(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Vừa xong';
-  if (mins < 60) return `${mins} phút trước`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} giờ trước`;
-  return `${Math.floor(hrs / 24)} ngày trước`;
-}
-
 function getCreator(creator: Discussion['creator']): User | null {
   return typeof creator === 'object' && creator !== null ? (creator as User) : null;
 }
@@ -66,7 +56,7 @@ function isImageUrl(url: string): boolean {
   );
 }
 
-function DiscussionImage({ src }: { src: string }) {
+function DiscussionImage({ src, attachmentLabel }: { src: string; attachmentLabel: string }) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
   return (
     <div className="mt-1">
@@ -79,7 +69,7 @@ function DiscussionImage({ src }: { src: string }) {
           className="inline-flex items-center gap-2 rounded-lg border px-4 py-3 text-sm text-primary hover:bg-neutral-100 dark:hover:bg-slate-700 transition-colors"
         >
           <Paperclip className="h-4 w-4 shrink-0" />
-          <span className="truncate max-w-xs">Xem tệp đính kèm</span>
+          <span className="truncate max-w-xs">{attachmentLabel}</span>
         </a>
       ) : (
         <img
@@ -110,9 +100,21 @@ export default function TeacherSessionDiscussionPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { socket } = useSocket();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
-  const timeAgo = timeAgoFn;
+  const timeAgo = useCallback(
+    (dateStr: string): string => {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return t('timeAgo.justNow');
+      if (mins < 60) return t('timeAgo.minutesAgo', { count: String(mins) });
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return t('timeAgo.hoursAgo', { count: String(hrs) });
+      return t('timeAgo.daysAgo', { count: String(Math.floor(hrs / 24)) });
+    },
+    [t]
+  );
 
   const [sort, setSort] = useState<SortMode>('recent');
   const [filter, setFilter] = useState<FilterMode>('all');
@@ -206,8 +208,7 @@ export default function TeacherSessionDiscussionPage() {
       toast.error(t('discussion.resolveError'));
     },
     onSuccess: (_data, { id, resolved }) => {
-      if (resolved && socket)
-        socket.emit('sendResolve', { subjectID: cAttendId, messageID: id });
+      if (resolved && socket) socket.emit('sendResolve', { subjectID: cAttendId, messageID: id });
       toast.success(resolved ? t('discussion.resolvedToast') : t('discussion.unresolvedToast'));
     },
   });
@@ -289,7 +290,7 @@ export default function TeacherSessionDiscussionPage() {
           {author.avatar ? (
             <img src={author.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
           ) : (
-            author.name?.[0]?.toUpperCase() ?? '?'
+            (author.name?.[0]?.toUpperCase() ?? '?')
           )}
           <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
             <Info className="h-3 w-3 text-white" />
@@ -303,7 +304,7 @@ export default function TeacherSessionDiscussionPage() {
               {author.avatar ? (
                 <img src={author.avatar} alt="" className="h-12 w-12 object-cover" />
               ) : (
-                author.name?.[0]?.toUpperCase() ?? '?'
+                (author.name?.[0]?.toUpperCase() ?? '?')
               )}
             </div>
             <div className="min-w-0 flex-1">
@@ -350,7 +351,7 @@ export default function TeacherSessionDiscussionPage() {
     const displayName =
       creator?.role === 'teacher'
         ? t('discussion.roleTeacher')
-        : creator?.name ?? 'Sinh viên';
+        : (creator?.name ?? t('discussion.roleStudent'));
     const replies = isReply ? [] : repliesFor(d._id);
 
     return (
@@ -422,16 +423,18 @@ export default function TeacherSessionDiscussionPage() {
 
         {/* Content */}
         <>
-          {!isReply && d.title && (
-            <p className="font-semibold text-sm leading-snug">{d.title}</p>
-          )}
+          {!isReply && d.title && <p className="font-semibold text-sm leading-snug">{d.title}</p>}
           {isImageUrl(d.content) ? (
-            <DiscussionImage src={d.content} />
+            <DiscussionImage src={d.content} attachmentLabel={t('studentAttendance.viewFile')} />
           ) : (
             <p className="text-sm leading-relaxed">{d.content}</p>
           )}
           {(d.images ?? []).map((img) => (
-            <DiscussionImage key={img} src={img} />
+            <DiscussionImage
+              key={img}
+              src={img}
+              attachmentLabel={t('studentAttendance.viewFile')}
+            />
           ))}
         </>
 
@@ -461,9 +464,7 @@ export default function TeacherSessionDiscussionPage() {
               <MessageSquare className="h-3.5 w-3.5" />
               {t('discussion.commentCount', { n: String(replies.length) })}
             </p>
-            <div className="space-y-2">
-              {replies.map((r) => renderPost(r, true))}
-            </div>
+            <div className="space-y-2">{replies.map((r) => renderPost(r, true))}</div>
           </div>
         )}
       </div>
@@ -472,8 +473,8 @@ export default function TeacherSessionDiscussionPage() {
 
   // ─── Page ────────────────────────────────────────────────────────────────────
   const sessionLabel = session
-    ? `Buổi ${session.sessionNumber} — ${new Date(session.date).toLocaleDateString('vi-VN')}`
-    : 'Buổi học';
+    ? `${t('discussionHub.sessionN', { n: String(session.sessionNumber) })} — ${new Date(session.date).toLocaleDateString(localeTag)}`
+    : t('discussion.sessionSubtitleTeacher');
 
   return (
     <div className="space-y-4">
@@ -536,7 +537,9 @@ export default function TeacherSessionDiscussionPage() {
       {/* List */}
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-40 w-full rounded-xl" />
+          ))}
         </div>
       ) : mainPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-neutral-50 dark:bg-slate-800/50 py-14 gap-3 text-center">
@@ -548,15 +551,15 @@ export default function TeacherSessionDiscussionPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {mainPosts.map((d) => renderPost(d))}
-        </div>
+        <div className="space-y-3">{mainPosts.map((d) => renderPost(d))}</div>
       )}
 
       {/* Delete confirm */}
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
         title={t('discussion.deleteConfirmTitle')}
         description={t('discussion.deleteConfirmDesc')}
         confirmLabel={t('common.delete')}
@@ -567,7 +570,9 @@ export default function TeacherSessionDiscussionPage() {
       {/* Kick confirm */}
       <ConfirmDialog
         open={!!kickTarget}
-        onOpenChange={(open) => { if (!open) setKickTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setKickTarget(null);
+        }}
         title={t('discussion.removeConfirmTitle')}
         description={t('discussion.removeConfirmDesc')}
         confirmLabel={t('discussion.removeFromClass')}

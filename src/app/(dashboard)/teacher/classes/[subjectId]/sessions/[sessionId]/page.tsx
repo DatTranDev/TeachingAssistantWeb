@@ -64,7 +64,8 @@ export default function TeacherSessionDetailPage({ params }: PageProps) {
   const { subject, classSessions } = useSubject();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [overrideStudent, setOverrideStudent] = useState<StudentCAttendEntry | User | null>(null);
@@ -235,13 +236,13 @@ export default function TeacherSessionDetailPage({ params }: PageProps) {
               {t('sessions.detail.title', { n: String(cAttend.sessionNumber) })}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {new Date(cAttend.date).toLocaleDateString('vi-VN', {
+              {new Date(cAttend.date).toLocaleDateString(localeTag, {
                 weekday: 'long',
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
               })}
-              {cs && ` · ${cs.start}–${cs.end} · Phòng ${cs.room}`}
+              {cs && ` · ${cs.start}–${cs.end} · ${t('sessions.table.room')} ${cs.room}`}
             </p>
           </div>
           <SessionStatusBadge status={status ?? 'upcoming'} />

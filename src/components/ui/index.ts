@@ -16,6 +16,8 @@ export * from './sheet';
 export * from './switch';
 export * from './table';
 export * from './textarea';
+export * from './progress';
+export * from './tabs';
 
 // Custom components
 export * from './confirm-dialog';

@@ -11,13 +11,14 @@ import { useT } from '@/hooks/use-t';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function formatDate(input: string): string {
-  return new Date(input).toLocaleDateString('vi-VN');
+function formatDate(input: string, localeTag: string): string {
+  return new Date(input).toLocaleDateString(localeTag);
 }
 
 export default function TeacherDiscussionHubPage() {
   const { subjectId } = useSubject();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
   const { data: cAttends = [], isLoading } = useQuery({
     queryKey: queryKeys.cAttend.bySubject(subjectId),
@@ -80,7 +81,9 @@ export default function TeacherDiscussionHubPage() {
                   <p className="font-medium">
                     {t('discussionHub.sessionN', { n: String(session.sessionNumber) })}
                   </p>
-                  <p className="text-xs text-muted-foreground">{formatDate(session.date)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(session.date, localeTag)}
+                  </p>
                 </div>
                 <Link href={`/teacher/classes/${subjectId}/discussion/sessions/${session._id}`}>
                   <Button size="sm" variant="outline">

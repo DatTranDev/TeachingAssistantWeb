@@ -16,6 +16,8 @@ export interface Translations {
     retry: string;
     noData: string;
     or: string;
+    done: string;
+    generic: string;
   };
   nav: {
     timetable: string;
@@ -25,6 +27,7 @@ export interface Translations {
     dashboard: string;
     classDetail: string;
     aiAssistant: string;
+    billing: string;
   };
   auth: {
     login: string;
@@ -94,6 +97,7 @@ export interface Translations {
       emptyDesc: string;
       confirmLeaveTitle: string;
       confirmLeaveDesc: string;
+      noResults: string;
     };
     timetable: {
       title: string;
@@ -484,6 +488,7 @@ export interface Translations {
     sessionItem: string;
     randomSummary: string;
     previewGroupCount: string;
+    minCountError: string;
   };
   discussion: {
     unansweredAlert: string;
@@ -665,6 +670,116 @@ export interface Translations {
     timeMinsAgo: string;
     timeHoursAgo: string;
   };
+  billingUi: {
+    title: string;
+    subtitle: string;
+    plans: string;
+    aiCredits: string;
+    fileStorage: string;
+    currentPlan: string;
+    accountUsage: string;
+    manageAiCredits: string;
+    manageFileStorage: string;
+    paymentSettings: string;
+    billingHistory: string;
+    advancedSubscription: string;
+    cancelCurrentPlan: string;
+    buyMoreCredits: string;
+    increaseStorage: string;
+    aiCreditsRemainingPeriod: string;
+    monthlyAiCredits: string;
+    purchasedCredits: string;
+    purchasedCreditPacks: string;
+    fileStorageRemaining: string;
+    baseStorage: string;
+    addonStorage: string;
+    purchasedStoragePacks: string;
+    paymentMethodSetupInitFailed: string;
+    billingPortalOpenFailed: string;
+    paymentMethodAddedSuccess: string;
+    footerSecuredByStripe: string;
+    remaining: string;
+    boughtOn: string;
+    pack: string;
+    left: string;
+    expires: string;
+    storageShort: string;
+  };
+  paymentMethodUi: {
+    addNewCard: string;
+    verifyAndSaveCard: string;
+    verifying: string;
+    saveCard: string;
+    verificationError: string;
+    verifiedAndSavedSuccess: string;
+    verificationFailed: string;
+    saveCardFailed: string;
+    defaultUpdated: string;
+    defaultUpdateFailed: string;
+    cardRemovedSuccess: string;
+    cardRemoveFailed: string;
+    noSavedMethods: string;
+    default: string;
+    selected: string;
+    expires: string;
+    makeDefault: string;
+    removeCard: string;
+  };
+  checkoutUi: {
+    reviewAndSubscribe: string;
+    backToBilling: string;
+    itemNotFound: string;
+    itemNotFoundDesc: string;
+    addonNotFoundDesc: string;
+    checkoutInitError: string;
+    preparingSecureCheckout: string;
+    saveYearlyBilling: string;
+    upTo25Off: string;
+    aiAddonTitle: string;
+    storageAddonTitle: string;
+    oneTimeEach: string;
+    perMonth: string;
+    paymentMethod: string;
+    choosePayFor: string;
+    endingIn: string;
+    default: string;
+    expiry: string;
+    addingNewCard: string;
+    addNewCard: string;
+    newPaymentMethod: string;
+    secure: string;
+    orderDetails: string;
+    oneTimeAiRefill: string;
+    recurringStorage: string;
+    yearlyPlan: string;
+    monthlyPlan: string;
+    todayVsAfterPurchase: string;
+    totalAiCredits: string;
+    totalStorageCapacity: string;
+    amountDue: string;
+    oneTime: string;
+    perYear: string;
+    totalCharge: string;
+    chargedToday: string;
+    plusApplicableTaxes: string;
+    subscribe: string;
+    purchaseWithSavedCard: string;
+    changeOrCancelAnytime: string;
+    paymentSecureNote: string;
+    purchaseAiSuccess: string;
+    purchaseStorageSuccess: string;
+    subscribeSuccess: string;
+    paymentFailed: string;
+    subscriptionFailed: string;
+    firstName: string;
+    lastName: string;
+    paymentDetails: string;
+    country: string;
+    streetAddress: string;
+    searchAddress: string;
+    postalCode: string;
+    loadingCheckout: string;
+  };
   register: {
     title: string;
     stepIndicator: string;
@@ -729,6 +844,41 @@ export interface Translations {
       help: string;
     };
   };
+  notes: {
+    title: string;
+    addNote: string;
+    editNote: string;
+    deleteNote: string;
+    noteDetail: string;
+    titleLabel: string;
+    dateLabel: string;
+    timeLabel: string;
+    durationLabel: string;
+    locationLabel: string;
+    doingWithLabel: string;
+    checklistLabel: string;
+    addChecklistItem: string;
+    markAsDone: string;
+    saveSuccess: string;
+    deleteSuccess: string;
+    deleteConfirm: string;
+    placeholder: {
+      title: string;
+      location: string;
+      doingWith: string;
+      checklist: string;
+    };
+  };
+  files: {
+    title: string;
+    uploadTitle: string;
+    empty: string;
+    deleteConfirm: string;
+    uploadSuccess: string;
+    deleteSuccess: string;
+    size: string;
+    searchPlaceholder: string;
+  };
 }
 
 const en: Translations = {
@@ -749,6 +899,8 @@ const en: Translations = {
     retry: 'Retry',
     noData: 'No data',
     or: 'or',
+    done: 'Done',
+    generic: 'An error occurred. Please try again.',
   },
   nav: {
     timetable: 'Timetable',
@@ -758,6 +910,7 @@ const en: Translations = {
     dashboard: 'Dashboard',
     classDetail: 'Class Detail',
     aiAssistant: 'AI Assistant',
+    billing: 'Billing',
   },
   auth: {
     login: 'Sign In',
@@ -843,6 +996,7 @@ const en: Translations = {
       emptyDesc: 'Join your first class to get started.',
       confirmLeaveTitle: 'Leave Class',
       confirmLeaveDesc: 'Are you sure you want to leave "{{name}}"? This action cannot be undone.',
+      noResults: 'No classes found matching "{{query}}"',
     },
     timetable: {
       title: 'Timetable',
@@ -1278,6 +1432,7 @@ const en: Translations = {
     sessionItem: 'Session #{{n}} \u2014 {{date}}',
     randomSummary: '{{groups}} groups \u2014 {{students}} students \u2014 ~{{avg}} per group',
     previewGroupCount: '~{{groups}} groups (~{{avg}} members/group)',
+    minCountError: 'Minimum value is 2',
   },
   discussion: {
     unansweredAlert: '{{count}} unanswered questions',
@@ -1459,6 +1614,118 @@ const en: Translations = {
     timeMinsAgo: '{{n}} min ago',
     timeHoursAgo: '{{n}} hr ago',
   },
+  billingUi: {
+    title: 'Billing',
+    subtitle: 'Manage your subscription, AI credits, and storage.',
+    plans: 'Plans',
+    aiCredits: 'AI Credits',
+    fileStorage: 'File Storage',
+    currentPlan: 'Current Plan',
+    accountUsage: 'Account & Usage',
+    manageAiCredits: 'Manage AI Credits',
+    manageFileStorage: 'Manage File Storage',
+    paymentSettings: 'Payment Settings',
+    billingHistory: 'Billing history & Invoices',
+    advancedSubscription: 'Advanced Subscription Management',
+    cancelCurrentPlan: 'Cancel current plan',
+    buyMoreCredits: 'Buy More Credits',
+    increaseStorage: 'Increase Storage',
+    aiCreditsRemainingPeriod: 'AI credits remaining in this period',
+    monthlyAiCredits: 'Monthly AI credits',
+    purchasedCredits: 'Purchased credits',
+    purchasedCreditPacks: 'Purchased Credit Packs',
+    fileStorageRemaining: 'File storage remaining',
+    baseStorage: 'Base storage',
+    addonStorage: 'Add-on storage',
+    purchasedStoragePacks: 'Purchased Storage Packs',
+    paymentMethodSetupInitFailed: 'Failed to initialize payment method setup',
+    billingPortalOpenFailed: 'Failed to open billing portal',
+    paymentMethodAddedSuccess: 'Payment method added successfully',
+    footerSecuredByStripe: '© 2026 Teaching Assistant • Secured by Stripe',
+    remaining: 'remaining',
+    boughtOn: 'Bought on',
+    pack: 'pack',
+    left: 'left',
+    expires: 'Expires',
+    storageShort: 'Storage',
+  },
+  paymentMethodUi: {
+    addNewCard: 'Add New Card',
+    verifyAndSaveCard: 'Verify and save your card for future payments.',
+    verifying: 'Verifying...',
+    saveCard: 'Save Card',
+    verificationError: 'An error occurred during verification.',
+    verifiedAndSavedSuccess: 'Payment method verified and saved successfully!',
+    verificationFailed: 'Payment verification failed.',
+    saveCardFailed: 'Failed to save card.',
+    defaultUpdated: 'Default payment method updated.',
+    defaultUpdateFailed: 'Failed to update default card.',
+    cardRemovedSuccess: 'Card removed successfully.',
+    cardRemoveFailed: 'Failed to remove card.',
+    noSavedMethods: 'No saved payment methods found.',
+    default: 'Default',
+    selected: 'Selected',
+    expires: 'Expires',
+    makeDefault: 'Make Default',
+    removeCard: 'Remove Card',
+  },
+  checkoutUi: {
+    reviewAndSubscribe: 'Review and subscribe',
+    backToBilling: 'Back to Billing',
+    itemNotFound: 'Item not found',
+    itemNotFoundDesc:
+      "We couldn't find the item you're trying to purchase. It may have been removed or the link is invalid.",
+    addonNotFoundDesc: "We couldn't find the addon you're trying to purchase.",
+    checkoutInitError: 'Failed to initialize checkout',
+    preparingSecureCheckout: 'Preparing your secure checkout...',
+    saveYearlyBilling: 'Save with yearly billing',
+    upTo25Off: 'up to 25% off',
+    aiAddonTitle: 'AI Credits Add-on',
+    storageAddonTitle: 'Storage Add-on',
+    oneTimeEach: 'One-time each',
+    perMonth: '/ month',
+    paymentMethod: 'Payment method',
+    choosePayFor: "Choose how you'd like to pay for ",
+    endingIn: 'ending in',
+    default: 'Default',
+    expiry: 'Expiry',
+    addingNewCard: 'Adding New Card...',
+    addNewCard: 'Add New Card',
+    newPaymentMethod: 'New payment method',
+    secure: 'SECURE',
+    orderDetails: 'Order details',
+    oneTimeAiRefill: 'One-time AI refill',
+    recurringStorage: 'Recurring Storage',
+    yearlyPlan: 'Yearly Plan',
+    monthlyPlan: 'Monthly Plan',
+    todayVsAfterPurchase: 'What you have today vs after purchase',
+    totalAiCredits: 'Total AI Credits',
+    totalStorageCapacity: 'Total Storage Capacity',
+    amountDue: 'Amount due',
+    oneTime: 'One-time',
+    perYear: '/ year',
+    totalCharge: 'Total charge',
+    chargedToday: 'Charged today',
+    plusApplicableTaxes: 'plus applicable taxes',
+    subscribe: 'Subscribe',
+    purchaseWithSavedCard: 'Purchase with Saved Card',
+    changeOrCancelAnytime: 'Change or cancel your plan at any time.',
+    paymentSecureNote:
+      'Your payment information is handled securely by Stripe. We do not store your full card details in our servers.',
+    purchaseAiSuccess: 'Successfully purchased AI credits!',
+    purchaseStorageSuccess: 'Successfully added storage capacity!',
+    subscribeSuccess: 'Successfully subscribed to plan!',
+    paymentFailed: 'Payment failed',
+    subscriptionFailed: 'Subscription failed',
+    firstName: 'First name',
+    lastName: 'Last name',
+    paymentDetails: 'Payment details',
+    country: 'Country',
+    streetAddress: 'Street Address',
+    searchAddress: 'Search address...',
+    postalCode: 'Postal code',
+    loadingCheckout: 'Loading checkout...',
+  },
   register: {
     title: 'Create account',
     stepIndicator: 'Step {{step}}/2',
@@ -1531,13 +1798,49 @@ const en: Translations = {
     daysAgo: '{{count}} days ago',
   },
   aiAssistant: {
-    welcome: "Hello! I'm your AI Assistant. I can help you with class schedules, attendance, documents, and more. How can I assist you today?",
+    welcome:
+      "Hello! I'm your AI Assistant. I can help you with class schedules, attendance, documents, and more. How can I assist you today?",
     suggestions: {
       schedule: 'Show me my schedule for today',
       attendance: 'How is my attendance in Math?',
       documents: 'Are there any new documents for Physics?',
       help: 'What else can you do?',
     },
+  },
+  notes: {
+    title: 'Notes',
+    addNote: 'Add Note',
+    editNote: 'Edit Note',
+    deleteNote: 'Delete Note',
+    noteDetail: 'Note Detail',
+    titleLabel: 'Title',
+    dateLabel: 'Date',
+    timeLabel: 'Time',
+    durationLabel: 'Duration (min)',
+    locationLabel: 'Location',
+    doingWithLabel: 'With whom',
+    checklistLabel: 'Checklist',
+    addChecklistItem: 'Add item',
+    markAsDone: 'Mark as done',
+    saveSuccess: 'Note saved',
+    deleteSuccess: 'Note deleted',
+    deleteConfirm: 'Are you sure you want to delete this note?',
+    placeholder: {
+      title: 'What needs to be done?',
+      location: 'Where is it?',
+      doingWith: 'Who are you with?',
+      checklist: 'Add a task...',
+    },
+  },
+  files: {
+    title: 'My Files',
+    uploadTitle: 'Upload New File',
+    empty: 'No files uploaded yet.',
+    deleteConfirm: 'Are you sure you want to delete this file? This action cannot be undone.',
+    uploadSuccess: 'File uploaded successfully',
+    deleteSuccess: 'File deleted successfully',
+    size: 'Size',
+    searchPlaceholder: 'Search files...',
   },
 };
 

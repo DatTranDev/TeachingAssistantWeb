@@ -25,16 +25,17 @@ function getStudent(studentId: AbsenceRequest['studentId']): User | null {
 
 export function AbsenceRequestReviewList({ subjectId }: Props) {
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
   const [activeTab, setActiveTab] = useState<'pending' | 'processed'>('pending');
   const [rejectTarget, setRejectTarget] = useState<AbsenceRequest | null>(null);
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const wd = d.getDay();
     const idx = wd === 0 ? 7 : wd;
     const day = idx >= 1 && idx <= 7 ? t(`days.short.d${idx}` as TKey) : '';
-    return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+    return `${day}, ${d.toLocaleDateString(localeTag)}`;
   };
   const STATUS_CONFIG = {
     pending: {

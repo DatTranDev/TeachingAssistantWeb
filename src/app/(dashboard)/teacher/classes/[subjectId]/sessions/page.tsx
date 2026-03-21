@@ -68,13 +68,14 @@ function ReviewSummaryModal({
   cAttend,
   totalStudents,
 }: ReviewSummaryModalProps) {
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const wd = d.getDay();
     const idx = wd === 0 ? 7 : wd;
     const day = idx >= 1 && idx <= 7 ? t(`days.short.d${idx}` as TKey) : '';
-    return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+    return `${day}, ${d.toLocaleDateString(localeTag)}`;
   };
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: queryKeys.reviews.byCAttend(cAttend._id),
@@ -213,7 +214,8 @@ function ReviewSummaryModal({
 export default function TeacherSessionsPage() {
   const { subjectId, classSessions } = useSubject();
   const queryClient = useQueryClient();
-  const { t } = useT();
+  const { t, locale } = useT();
+  const localeTag = locale === 'vi' ? 'vi-VN' : 'en-US';
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<CAttend | null>(null);
   const [reviewTarget, setReviewTarget] = useState<CAttend | null>(null);
@@ -223,7 +225,7 @@ export default function TeacherSessionsPage() {
     const wd = d.getDay();
     const idx = wd === 0 ? 7 : wd;
     const day = idx >= 1 && idx <= 7 ? t(`days.short.d${idx}` as TKey) : '';
-    return `${day}, ${d.toLocaleDateString('vi-VN')}`;
+    return `${day}, ${d.toLocaleDateString(localeTag)}`;
   };
 
   const { data: cAttends = [], isLoading } = useQuery({
