@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation';
 import { cAttendApi } from '@/lib/api/cAttend';
 import { subjectsApi } from '@/lib/api/subjects';
 import { queryKeys } from '@/lib/api/queryKeys';
-import { useSubject } from '@/contexts/SubjectContext';
 import { useAuth } from '@/hooks/use-auth';
 import { useSubjectRoom } from '@/hooks/use-room';
 import { useSocketEvent } from '@/hooks/use-socket-event';
@@ -31,16 +30,17 @@ interface StudentTile {
 }
 
 function useElapsedTimer(running: boolean) {
-  const [elapsed, setElapsed] = useState(0);
+  const [timer, setTimer] = useState({ running, seconds: 0 });
+  if (timer.running !== running) setTimer({ running, seconds: 0 });
   useEffect(() => {
-    if (!running) {
-      setElapsed(0);
-      return;
-    }
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    if (!running) return;
+    const id = setInterval(
+      () => setTimer((value) => ({ ...value, seconds: value.seconds + 1 })),
+      1000
+    );
     return () => clearInterval(id);
   }, [running]);
-  return `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(timer.seconds / 60)).padStart(2, '0')}:${String(timer.seconds % 60).padStart(2, '0')}`;
 }
 
 interface PageProps {
@@ -49,13 +49,11 @@ interface PageProps {
 
 export default function LiveAttendancePage({ params }: PageProps) {
   const { subjectId, sessionId } = use(params);
-  const { subject } = useSubject();
   const { user } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { t } = useT();
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
-  const [tiles, setTiles] = useState<StudentTile[]>([]);
 
   useSubjectRoom(user?._id, subjectId);
 
@@ -84,29 +82,28 @@ export default function LiveAttendancePage({ params }: PageProps) {
     }
   }, [cAttend, loadingSession, router, subjectId, sessionId]);
 
-  // Initialise tiles from students + attended list
-  useEffect(() => {
-    if (!students.length) return;
-    const attendedIds = new Set(attendedStudents.map((s: User) => s._id));
-    setTiles(
-      students.map((s) => ({
-        _id: s._id,
-        name: s.name,
-        userCode: s.userCode,
-        avatar: s.avatar,
-        checkedIn: attendedIds.has(s._id),
-      }))
-    );
-  }, [students, attendedStudents]);
+  const attendedIds = new Set(attendedStudents.map((student: User) => student._id));
+  const tiles: StudentTile[] = students.map((student) => ({
+    _id: student._id,
+    name: student.name,
+    userCode: student.userCode,
+    avatar: student.avatar,
+    checkedIn: attendedIds.has(student._id),
+  }));
 
   // Real-time handler
   const handleNewAttendance = useCallback(
-    (data: { student: User; index: number; status: string }) => {
-      setTiles((prev) =>
-        prev.map((t) => (t._id === data.student._id ? { ...t, checkedIn: true } : t))
-      );
+    (data: {
+      student: User;
+      cAttendId: string;
+      index: number;
+      status: string;
+      listStatus: { index: number; status: 'CM' | 'KP' | 'CP' }[];
+    }) => {
+      if (data.cAttendId !== sessionId) return;
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cAttend.students(sessionId) });
     },
-    []
+    [queryClient, sessionId]
   );
   useSocketEvent('receiveUserAttendance', handleNewAttendance);
 

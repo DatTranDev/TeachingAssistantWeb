@@ -15,6 +15,13 @@ export function getSocket(): AppSocket {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
+    socketInstance.emit = new Proxy(socketInstance.emit, {
+      apply(target, socket, args: unknown[]) {
+        // All mutations now go through authorized HTTP routes and server publication.
+        if (typeof args[0] === 'string' && /^(send|attendace)/.test(args[0])) return socket;
+        return Reflect.apply(target, socket, args);
+      },
+    });
   }
   return socketInstance;
 }

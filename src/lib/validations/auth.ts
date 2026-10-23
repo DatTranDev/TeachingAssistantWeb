@@ -2,14 +2,26 @@ import { z } from 'zod';
 
 export const loginSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
-  password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+  password: z
+    .string()
+    .min(6, 'Mật khẩu tối thiểu 6 ký tự')
+    .refine(
+      (value) => new TextEncoder().encode(value).length <= 72,
+      'Mật khẩu tối đa 72 byte UTF-8'
+    ),
   rememberMe: z.boolean().optional(),
 });
 
 export const registerStep1Schema = z.object({
   name: z.string().min(1, 'Tên là bắt buộc'),
   email: z.string().email('Email không hợp lệ'),
-  password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+  password: z
+    .string()
+    .min(6, 'Mật khẩu tối thiểu 6 ký tự')
+    .refine(
+      (value) => new TextEncoder().encode(value).length <= 72,
+      'Mật khẩu tối đa 72 byte UTF-8'
+    ),
   userCode: z.string().min(1, 'Mã số là bắt buộc'),
   school: z.string().min(1, 'Tên trường là bắt buộc'),
 });
@@ -24,7 +36,13 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+    password: z
+      .string()
+      .min(6, 'Mật khẩu tối thiểu 6 ký tự')
+      .refine(
+        (value) => new TextEncoder().encode(value).length <= 72,
+        'Mật khẩu tối đa 72 byte UTF-8'
+      ),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {

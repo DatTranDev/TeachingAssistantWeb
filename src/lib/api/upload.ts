@@ -1,7 +1,9 @@
+import { validateUpload } from './upload-limits';
 import { apiClient } from './client';
 
 export const uploadApi = {
   uploadImage: async (file: File): Promise<string> => {
+    validateUpload([file], true);
     const formData = new FormData();
     formData.append('image', file);
     const { data } = await apiClient.post<{ image: string }>('/upload/image', formData, {
@@ -11,6 +13,7 @@ export const uploadApi = {
   },
 
   uploadImages: async (files: File[]): Promise<string[]> => {
+    validateUpload(files, true);
     const formData = new FormData();
     files.forEach((f) => formData.append('image', f));
     const { data } = await apiClient.post<{ images: string[] }>('/upload/images', formData, {
@@ -20,6 +23,7 @@ export const uploadApi = {
   },
 
   uploadFile: async (file: File): Promise<{ url: string; name: string; type: string }> => {
+    validateUpload([file]);
     const formData = new FormData();
     formData.append('file', file);
     const { data } = await apiClient.post<{ url: string; name: string; type: string }>(

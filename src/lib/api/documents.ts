@@ -1,3 +1,4 @@
+import { validateUpload } from './upload-limits';
 import { apiClient } from './client';
 import type { Document } from '@/types/domain';
 
@@ -14,6 +15,7 @@ export const documentsApi = {
     params: { name: string; type: string; cAttendId: string },
     onProgress?: (pct: number) => void
   ): Promise<Document> => {
+    validateUpload([file]);
     const formData = new FormData();
     formData.append('file', file);
     const { data } = await apiClient.post<{ document: Document }>(

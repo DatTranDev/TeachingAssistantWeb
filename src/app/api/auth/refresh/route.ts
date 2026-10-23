@@ -16,12 +16,18 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      cookieStore.delete('refresh_token');
-      return NextResponse.json({ error: 'Refresh failed' }, { status: 401 });
+      if (response.status === 401 || response.status === 403) {
+        cookieStore.delete('refresh_token');
+        return NextResponse.json({ error: 'Refresh failed' }, { status: 401 });
+      }
+      return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 });
     }
 
     const { access_token } = (await response.json()) as { access_token: string };
-    return NextResponse.json({ accessToken: access_token });
+    return NextResponse.json(
+      { accessToken: access_token },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch {
     return NextResponse.json({ error: 'Network error' }, { status: 500 });
   }

@@ -1,4 +1,4 @@
-import type { Discussion, Post, Reaction, User, AttendRecord } from './domain';
+import type { AttendanceStatus, Discussion, Post, Reaction, User } from './domain';
 
 export interface OnlineUser {
   userID: string;
@@ -20,6 +20,8 @@ export interface FCMMessage {
 }
 
 export interface ServerToClientEvents {
+  auth_error: (error: { code: string }) => void;
+  room_error: (error: { code: string }) => void;
   // Online users
   getOnlineUsers: (users: OnlineUser[]) => void;
   // Subject Q&A
@@ -30,7 +32,13 @@ export interface ServerToClientEvents {
   receiveReaction: (data: { messageID: string; reaction: Reaction }) => void;
   receiveUpdateReaction: (data: { messageID: string; reaction: Reaction }) => void;
   // Attendance
-  receiveUserAttendance: (data: { student: User; index: number; status: string }) => void;
+  receiveUserAttendance: (data: {
+    student: User;
+    cAttendId: string;
+    index: number;
+    status: string;
+    listStatus: { index: number; status: AttendanceStatus }[];
+  }) => void;
   receiveUpdateAttendance: (student: User) => void;
   receiveAttendance: (dataMsg: AttendanceMessage) => void;
   // Moderation

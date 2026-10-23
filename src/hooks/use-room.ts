@@ -12,9 +12,12 @@ export function useSubjectRoom(userId: string | undefined, subjectId: string | u
   useEffect(() => {
     if (!socket || !userId || !subjectId) return;
 
-    socket.emit('joinSubject', { userID: userId, subjectID: subjectId });
+    const join = () => socket.emit('joinSubject', { userID: userId, subjectID: subjectId });
+    socket.on('connect', join);
+    if (socket.connected) join();
 
     return () => {
+      socket.off('connect', join);
       socket.emit('leaveSubject', { userID: userId, subjectID: subjectId });
     };
   }, [socket, userId, subjectId]);
@@ -33,13 +36,17 @@ export function useChannelRoom(
   useEffect(() => {
     if (!socket || !userId || !subjectId || !channelId) return;
 
-    socket.emit('joinSubjectChannel', {
-      userID: userId,
-      subjectID: subjectId,
-      channelID: channelId,
-    });
+    const join = () =>
+      socket.emit('joinSubjectChannel', {
+        userID: userId,
+        subjectID: subjectId,
+        channelID: channelId,
+      });
+    socket.on('connect', join);
+    if (socket.connected) join();
 
     return () => {
+      socket.off('connect', join);
       socket.emit('leaveSubjectChannel', {
         userID: userId,
         subjectID: subjectId,

@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useCallback } from 'react';
+import { use, useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Pencil, Radio, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,18 +27,17 @@ import { OverrideModal } from '@/components/features/attendance/OverrideModal';
 import { useT } from '@/hooks/use-t';
 
 function useElapsedTimer(running: boolean) {
-  const [elapsed, setElapsed] = useState(0);
-  useCallback(() => {
-    if (!running) {
-      setElapsed(0);
-      return;
-    }
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+  const [timer, setTimer] = useState({ running, seconds: 0 });
+  if (timer.running !== running) setTimer({ running, seconds: 0 });
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(
+      () => setTimer((value) => ({ ...value, seconds: value.seconds + 1 })),
+      1000
+    );
     return () => clearInterval(id);
   }, [running]);
-  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-  const ss = String(elapsed % 60).padStart(2, '0');
-  return `${mm}:${ss}`;
+  return `${String(Math.floor(timer.seconds / 60)).padStart(2, '0')}:${String(timer.seconds % 60).padStart(2, '0')}`;
 }
 
 function StatusBadge({ status }: { status?: string }) {
@@ -61,7 +60,7 @@ interface PageProps {
 
 export default function TeacherSessionDetailPage({ params }: PageProps) {
   const { subjectId, sessionId } = use(params);
-  const { subject, classSessions } = useSubject();
+  const { classSessions } = useSubject();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { t, locale } = useT();
@@ -106,7 +105,14 @@ export default function TeacherSessionDetailPage({ params }: PageProps) {
   }, [queryClient, sessionId]);
 
   const handleNewAttendance = useCallback(
-    (data: { student: User; index: number; status: string }) => {
+    (data: {
+      student: User;
+      cAttendId: string;
+      index: number;
+      status: string;
+      listStatus: { index: number; status: 'CM' | 'KP' | 'CP' }[];
+    }) => {
+      if (data.cAttendId !== sessionId) return;
       queryClient.setQueryData<StudentCAttendEntry[]>(
         queryKeys.cAttend.students(sessionId),
         (old = []) => {
@@ -114,7 +120,11 @@ export default function TeacherSessionDetailPage({ params }: PageProps) {
           if (existing) {
             return old.map((s) =>
               s._id === data.student._id
-                ? { ...s, status: data.status as StudentCAttendEntry['status'] }
+                ? {
+                    ...s,
+                    status: data.status as StudentCAttendEntry['status'],
+                    listStatus: data.listStatus,
+                  }
                 : s
             );
           }
@@ -123,7 +133,7 @@ export default function TeacherSessionDetailPage({ params }: PageProps) {
             {
               ...(data.student as StudentCAttendEntry),
               status: data.status as StudentCAttendEntry['status'],
-              listStatus: [],
+              listStatus: data.listStatus,
             },
           ];
         }

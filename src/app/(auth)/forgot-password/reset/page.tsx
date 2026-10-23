@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, KeyRound } from 'lucide-react';
@@ -11,12 +11,27 @@ import { ROUTES } from '@/constants/routes';
 import { Spinner } from '@/components/ui/spinner';
 import { authApi } from '@/lib/api/auth';
 import { useT } from '@/hooks/use-t';
+import { usePasswordResetStore } from '@/stores/passwordResetStore';
+import { useAuthStore } from '@/stores/authStore';
+import { ApiError } from '@/lib/api/client';
 
 function ResetPasswordContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get('email') ?? '';
-  const otp = searchParams.get('otp') ?? '';
+  const completed = useRef(false);
+  const submitting = useRef(false);
+  const grant = usePasswordResetStore((state) => state.grant);
+  const [expired, setExpired] = useState(() => !grant || Date.parse(grant.expiresAt) <= Date.now());
+  useEffect(() => {
+    if (!grant) {
+      if (!completed.current) router.replace(ROUTES.FORGOT_PASSWORD);
+      return;
+    }
+    const timeout = setTimeout(
+      () => setExpired(true),
+      Math.max(0, Date.parse(grant.expiresAt) - Date.now())
+    );
+    return () => clearTimeout(timeout);
+  }, [grant, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -31,12 +46,25 @@ function ResetPasswordContent() {
   });
 
   const onSubmit = async (values: ResetPasswordValues) => {
+    if (submitting.current) return;
+    submitting.current = true;
     try {
-      await authApi.changePassword(email, values.password);
+      if (!grant || expired) {
+        setExpired(true);
+        return;
+      }
+      await authApi.resetPassword(grant.email, values.password, grant.resetToken);
+      completed.current = true;
+      usePasswordResetStore.getState().clear();
+      useAuthStore.getState().signOut();
+      await authApi.logout();
       toast.success(t('auth.resetPasswordSuccess'));
       router.push(ROUTES.LOGIN);
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.statusCode === 400) setExpired(true);
       toast.error(t('auth.resetPasswordError'));
+    } finally {
+      submitting.current = false;
     }
   };
 
@@ -53,7 +81,28 @@ function ResetPasswordContent() {
         {t('auth.resetPasswordSubtitle')}
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      {expired && (
+        <p role="alert" className="mb-4 text-sm text-destructive">
+          {t('auth.resetExpired')}{' '}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => {
+              usePasswordResetStore.getState().clear();
+              router.replace(ROUTES.FORGOT_PASSWORD);
+            }}
+          >
+            {t('auth.requestNewCode')}
+          </button>
+        </p>
+      )}
+      <form
+        onSubmit={(event) => {
+          void handleSubmit(onSubmit)(event);
+        }}
+        noValidate
+        className="space-y-4"
+      >
         {/* New Password */}
         <div>
           <label
@@ -126,7 +175,7 @@ function ResetPasswordContent() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || expired}
           className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 mt-2"
         >
           {isSubmitting && <Spinner className="h-4 w-4" />}

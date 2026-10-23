@@ -9,7 +9,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 import { useT } from '@/hooks/use-t';
 
 interface ProfileFormState {
@@ -19,7 +18,7 @@ interface ProfileFormState {
 }
 
 export function ProfilePageContent() {
-  const { user, accessToken, setAuth } = useAuth();
+  const { user, accessToken, setAuth, signOut } = useAuth();
   const { t } = useT();
 
   const [form, setForm] = useState<ProfileFormState>({
@@ -31,11 +30,10 @@ export function ProfilePageContent() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [pwForm, setPwForm] = useState({ password: '', confirmPassword: '' });
+  const [pwForm, setPwForm] = useState({ currentPassword: '', password: '', confirmPassword: '' });
   const [showPw, setShowPw] = useState(false);
   const [pwError, setPwError] = useState('');
   const [profileMsg, setProfileMsg] = useState('');
-  const [pwMsg, setPwMsg] = useState('');
 
   const ROLE_LABEL = user?.role === 'teacher' ? t('user.role.teacher') : t('user.role.student');
 
@@ -64,11 +62,9 @@ export function ProfilePageContent() {
   });
 
   const pwMutation = useMutation({
-    mutationFn: () => authApi.changePassword(user!.email, pwForm.password),
-    onSuccess: () => {
-      setPwMsg(t('profile.passwordSuccess'));
-      setPwForm({ password: '', confirmPassword: '' });
-      setTimeout(() => setPwMsg(''), 3000);
+    mutationFn: () => authApi.changePassword(pwForm.currentPassword, pwForm.password),
+    onSuccess: async () => {
+      await signOut();
     },
   });
 
@@ -82,6 +78,14 @@ export function ProfilePageContent() {
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPwError('');
+    if (!pwForm.currentPassword) {
+      setPwError(t('profile.currentPasswordRequired'));
+      return;
+    }
+    if (new TextEncoder().encode(pwForm.password).length > 72) {
+      setPwError(t('auth.passwordMaxBytes'));
+      return;
+    }
     if (pwForm.password.length < 6) {
       setPwError(t('profile.passwordMinLength'));
       return;
@@ -192,6 +196,21 @@ export function ProfilePageContent() {
       <div className="rounded-xl border bg-white dark:bg-slate-900 p-6">
         <h2 className="text-sm font-semibold mb-4">{t('profile.changePasswordTitle')}</h2>
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <p className="text-sm text-muted-foreground">{t('profile.signInAgain')}</p>
+          <div>
+            <Label htmlFor="current-pw">{t('profile.currentPasswordLabel')}</Label>
+            <Input
+              id="current-pw"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={pwForm.currentPassword}
+              onChange={(event) =>
+                setPwForm((form) => ({ ...form, currentPassword: event.target.value }))
+              }
+              className="mt-1"
+            />
+          </div>
           <div>
             <Label htmlFor="new-pw">{t('profile.newPasswordLabel')}</Label>
             <div className="relative mt-1">
@@ -226,9 +245,8 @@ export function ProfilePageContent() {
           </div>
 
           {pwError && <p className="text-sm text-destructive">{pwError}</p>}
-          {pwMsg && <p className="text-sm text-green-600 font-medium">{pwMsg}</p>}
           {pwMutation.isError && (
-            <p className="text-sm text-destructive">Đổi mật khẩu thất bại. Vui lòng thử lại.</p>
+            <p className="text-sm text-destructive">{t('profile.passwordFailed')}</p>
           )}
 
           <Button
@@ -238,7 +256,7 @@ export function ProfilePageContent() {
             className="w-full"
           >
             {pwMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Đổi mật khẩu
+            {t('profile.changePasswordTitle')}
           </Button>
         </form>
       </div>

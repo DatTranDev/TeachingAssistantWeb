@@ -1,0 +1,10 @@
+{
+  "name": "@teaching-assistant/lint-glob",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.cjs",
+  "license": "ISC",
+  "dependencies": {
+    "tinyglobby": "0.2.17"
+  }
+}

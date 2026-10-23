@@ -15,14 +15,11 @@ export class ApiError extends Error {
 
 function normalizeError(error: AxiosError): ApiError {
   const status = error.response?.status ?? 0;
-  const data = error.response?.data as { message?: string } | undefined;
-  return new ApiError(data?.message ?? 'An unexpected error occurred', status);
+  const data = error.response?.data as { message?: string; code?: string } | undefined;
+  return new ApiError(data?.message ?? 'An unexpected error occurred', status, data?.code);
 }
 
 // ── Token refresh state ──────────────────────────────────────────────────────
-
-let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
 
 // Lazy imports to avoid circular deps (auth store injected at runtime)
 type AuthStoreActions = {
@@ -37,12 +34,23 @@ export function injectAuthStore(store: AuthStoreActions) {
   _authStore = store;
 }
 
-async function refreshAccessToken(): Promise<string> {
-  const { data } = await axios.get<{ access_token: string }>(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/token/refresh-token`,
-    { withCredentials: true }
-  );
-  return data.access_token;
+let refreshPromise: Promise<string> | null = null;
+export function refreshSession(): Promise<string> {
+  if (!refreshPromise) {
+    const previousToken = _authStore?.getAccessToken();
+    refreshPromise = axios
+      .get<{ accessToken: string }>('/api/auth/refresh', { withCredentials: true })
+      .then(({ data }) => {
+        if (_authStore?.getAccessToken() !== previousToken)
+          throw new ApiError('Session changed', 409, 'SESSION_CHANGED');
+        _authStore?.setAccessToken(data.accessToken);
+        return data.accessToken;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
 }
 
 // ── Axios instance ────────────────────────────────────────────────────────────
@@ -69,34 +77,29 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !original._retry) {
+    const publicOrPassword = /\/(user\/(login|register|changepassword)|service\/)/.test(
+      original?.url ?? ''
+    );
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !publicOrPassword &&
+      _authStore?.getAccessToken()
+    ) {
       original._retry = true;
-
-      if (isRefreshing) {
-        return new Promise((resolve) => {
-          refreshQueue.push((token) => {
-            original.headers.Authorization = `Bearer ${token}`;
-            resolve(apiClient(original));
-          });
-        });
-      }
-
-      isRefreshing = true;
       try {
-        const newToken = await refreshAccessToken();
-        _authStore?.setAccessToken(newToken);
-        refreshQueue.forEach((cb) => cb(newToken));
-        refreshQueue = [];
+        const newToken = await refreshSession();
         original.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(original);
-      } catch {
-        _authStore?.signOut();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+      } catch (refreshError) {
+        if (
+          axios.isAxiosError(refreshError) &&
+          [401, 403].includes(refreshError.response?.status ?? 0)
+        ) {
+          _authStore?.signOut();
+          if (typeof window !== 'undefined') window.location.href = '/login';
         }
-        return Promise.reject(normalizeError(error));
-      } finally {
-        isRefreshing = false;
       }
     }
 

@@ -62,16 +62,27 @@ export const authApi = {
     await fetch('/api/auth/logout', { method: 'POST' });
   },
 
-  changePassword: async (email: string, password: string): Promise<void> => {
-    await apiClient.patch('/user/changepassword', { email, password });
+  resetPassword: async (email: string, password: string, resetToken: string): Promise<void> => {
+    await apiClient.patch('/user/changepassword', { email, password, resetToken });
+  },
+  changePassword: async (currentPassword: string, password: string): Promise<void> => {
+    await apiClient.patch('/user/password', { currentPassword, password });
   },
 
   sendEmailOtp: async (email: string): Promise<void> => {
     await apiClient.post('/service/sendEmail', { email });
   },
 
-  verifyCode: async (email: string, code: string): Promise<void> => {
-    await apiClient.post('/service/verifyCode', { email, code });
+  verifyCode: async (
+    email: string,
+    code: string,
+    purpose: 'password-reset' | 'email-verification' = 'email-verification'
+  ): Promise<{ resetToken?: string; expiresAt?: string }> => {
+    const { data } = await apiClient.post<{ resetToken?: string; expiresAt?: string }>(
+      '/service/verifyCode',
+      { email, code, purpose }
+    );
+    return data;
   },
 
   verifyEmail: async (email: string): Promise<void> => {

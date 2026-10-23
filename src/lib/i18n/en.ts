@@ -63,6 +63,9 @@ export interface Translations {
     noOtpReceived: string;
     resendOtp: string;
     resendAfter: string;
+    resetExpired: string;
+    requestNewCode: string;
+    passwordMaxBytes: string;
     resetPasswordTitle: string;
     resetPasswordSubtitle: string;
     newPasswordLabel: string;
@@ -396,6 +399,10 @@ export interface Translations {
     updateSuccess: string;
     updateFailed: string;
     saveBtn: string;
+    currentPasswordLabel: string;
+    currentPasswordRequired: string;
+    signInAgain: string;
+    passwordFailed: string;
     changePasswordTitle: string;
     newPasswordLabel: string;
     confirmPasswordLabel: string;
@@ -952,6 +959,9 @@ const en: Translations = {
     noOtpReceived: "Didn't receive the code?",
     resendOtp: 'Resend',
     resendAfter: 'Resend after {{s}}',
+    resetExpired: 'Your reset session has expired. Request a new verification code.',
+    requestNewCode: 'Request a new code',
+    passwordMaxBytes: 'Password must be at most 72 UTF-8 bytes.',
     resetPasswordTitle: 'Reset password',
     resetPasswordSubtitle: 'Enter a new password for your account',
     newPasswordLabel: 'New password',
@@ -1336,6 +1346,10 @@ const en: Translations = {
     updateSuccess: 'Profile updated!',
     updateFailed: 'Update failed. Please try again.',
     saveBtn: 'Save changes',
+    currentPasswordLabel: 'Current password',
+    currentPasswordRequired: 'Enter your current password.',
+    signInAgain: 'Changing your password signs out all devices. Sign in again afterward.',
+    passwordFailed: 'Password change failed. Check your current password and try again.',
     changePasswordTitle: 'Change password',
     newPasswordLabel: 'New password',
     confirmPasswordLabel: 'Confirm new password',

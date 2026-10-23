@@ -9,6 +9,7 @@ import { ROUTES } from '@/constants/routes';
 import { Spinner } from '@/components/ui/spinner';
 import { authApi } from '@/lib/api/auth';
 import { useT } from '@/hooks/use-t';
+import { usePasswordResetStore } from '@/stores/passwordResetStore';
 
 function VerifyOtpContent() {
   const router = useRouter();
@@ -19,13 +20,10 @@ function VerifyOtpContent() {
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+  const canResend = countdown <= 0;
 
   useEffect(() => {
-    if (countdown <= 0) {
-      setCanResend(true);
-      return;
-    }
+    if (countdown <= 0) return;
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(timer);
   }, [countdown]);
@@ -33,14 +31,14 @@ function VerifyOtpContent() {
   const handleResend = useCallback(async () => {
     if (!canResend) return;
     try {
+      usePasswordResetStore.getState().clear();
       await authApi.sendEmailOtp(email);
       setCountdown(60);
-      setCanResend(false);
       toast.success(t('auth.resendOtpSuccess'));
     } catch {
       toast.error(t('auth.resendOtpError'));
     }
-  }, [canResend, email]);
+  }, [canResend, email, t]);
 
   const handleVerify = async () => {
     if (otp.length < 6) {
@@ -49,10 +47,12 @@ function VerifyOtpContent() {
     }
     setIsSubmitting(true);
     try {
-      await authApi.verifyCode(email, otp);
-      router.push(
-        `${ROUTES.FORGOT_PASSWORD}/reset?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`
-      );
+      const grant = await authApi.verifyCode(email, otp, 'password-reset');
+      if (!grant.resetToken || !grant.expiresAt) throw new Error('Missing reset credential');
+      usePasswordResetStore
+        .getState()
+        .setGrant({ email, resetToken: grant.resetToken, expiresAt: grant.expiresAt });
+      router.replace(`${ROUTES.FORGOT_PASSWORD}/reset`);
     } catch {
       toast.error(t('auth.otpInvalid'));
     } finally {
@@ -70,7 +70,7 @@ function VerifyOtpContent() {
         {t('auth.enterOtpTitle')}
       </h1>
       <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
-        {t('auth.enterOtpSubtitle')}{' '}
+        {t('auth.enterOtpSubtitle', { email: '' })}{' '}
         <span className="font-medium text-neutral-700 dark:text-neutral-300">
           {email || t('auth.enterOtpEmailFallback')}
         </span>

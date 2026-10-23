@@ -1,8 +1,10 @@
+import { validateUpload } from './upload-limits';
 import { apiClient } from './client';
 import { UserFile } from '@/types/domain';
 
 export const filesApi = {
   upload: async (file: File, name?: string): Promise<{ message: string; file: UserFile }> => {
+    validateUpload([file]);
     const formData = new FormData();
     formData.append('file', file);
     if (name) formData.append('name', name);
